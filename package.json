@@ -1,14 +1,19 @@
 {
   "name": "@arkntools/depot-recognition",
   "version": "1.0.0-rc.8",
-  "main": "index.js",
+  "main": "dist/index.js",
   "author": "神代綺凛 <i@loli.best>",
   "license": "MIT",
   "scripts": {
-    "test": "node ./test && jest"
+    "test": "node ./test && jest",
+    "build": "babel src -d dist --delete-dir-on-start"
   },
+  "files": [
+    "dist/*"
+  ],
   "devDependencies": {
     "@arkntools/scripts": "^1.0.0",
+    "@babel/cli": "^7.13.14",
     "@babel/core": "^7.13.15",
     "@babel/eslint-parser": "^7.13.14",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.13.8",
