@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "index.js"
+      - "src/**"
+      - "test/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+      - name: Test
+        run: yarn test

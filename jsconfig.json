@@ -1,0 +1,7 @@
+{
+  "include": ["./src/**/*", "index.js", "jest.config.js"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "resolveJsonModule": true
+  }
+}

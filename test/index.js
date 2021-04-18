@@ -1,0 +1,24 @@
+const { readdirSync, writeFileSync, existsSync, mkdirSync } = require('fs');
+const { resolve } = require('path');
+const fetch = require('node-fetch').default;
+const _ = require('lodash');
+
+const SPEC_CONTENT = `import run from '../../index.jm';
+run(__dirname);`;
+
+const rp = rpath => resolve(__dirname, rpath);
+
+readdirSync(rp('cases')).forEach(name => {
+  writeFileSync(rp(`cases/${name}/index.spec.js`), SPEC_CONTENT);
+});
+
+if (!existsSync(rp('cache'))) mkdirSync(rp('cache'));
+[
+  'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/itemOrder.json',
+  'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.zip',
+].forEach(async url => {
+  const file = rp(`cache/${_.last(url.split('/'))}`);
+  if (existsSync(rp(`cache/${file}`))) return;
+  const buffer = await fetch(url).then(r => r.buffer());
+  writeFileSync(file, buffer);
+});
