@@ -1,34 +1,39 @@
 {
   "name": "@arkntools/depot-recognition",
-  "version": "1.0.0-rc.8",
+  "version": "1.0.0-rc.9",
   "main": "dist/index.js",
   "author": "神代綺凛 <i@loli.best>",
   "license": "MIT",
   "scripts": {
     "test": "node ./test && jest",
-    "build": "babel src -d dist --delete-dir-on-start"
+    "build": "rollup -c"
   },
   "files": [
     "dist/*"
   ],
-  "devDependencies": {
+  "dependencies": {
     "@arkntools/scripts": "^1.0.0",
-    "@babel/cli": "^7.13.14",
+    "jimp": "^0.16.1",
+    "jszip": "^3.6.0",
+    "lodash": "^4.17.21",
+    "simple-statistics": "^7.7.0"
+  },
+  "devDependencies": {
     "@babel/core": "^7.13.15",
     "@babel/eslint-parser": "^7.13.14",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.13.8",
     "@babel/plugin-proposal-optional-chaining": "^7.13.12",
     "@babel/preset-env": "^7.13.15",
+    "@rollup/plugin-babel": "^5.3.0",
     "@types/jest": "^26.0.22",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.6.3",
     "eslint": "^7.24.0",
     "eslint-plugin-jest": "^24.3.5",
     "jest": "^26.6.3",
-    "jimp": "^0.16.1",
-    "jszip": "^3.6.0",
-    "lodash": "^4.17.21",
     "node-fetch": "^2.6.1",
-    "simple-statistics": "^7.7.0"
+    "rollup": "^2.45.2",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-external-globals": "^0.6.1"
   }
 }

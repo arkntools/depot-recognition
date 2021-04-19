@@ -1,3 +1,5 @@
+import _ from 'lodash';
+import Jimp from 'jimp';
 import { isTrustSim } from './trustSim';
 
 /**

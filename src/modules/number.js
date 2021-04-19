@@ -1,3 +1,6 @@
+import _ from 'lodash';
+import OCRAD from '@arkntools/scripts/dist/ocrad';
+import Jimp from 'jimp';
 import { getRanges, removeRangesNoise, getRangeEnd } from './range';
 
 const NUM_RESIZE_H = 60;

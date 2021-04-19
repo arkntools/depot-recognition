@@ -1,7 +1,0 @@
-{
-  "include": ["./src/**/*"],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "resolveJsonModule": true
-  }
-}

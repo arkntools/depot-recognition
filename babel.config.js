@@ -1,13 +1,13 @@
-module.exports = {
+const config = {
   plugins: [
     '@babel/plugin-proposal-nullish-coalescing-operator',
     '@babel/plugin-proposal-optional-chaining',
   ],
-  ...(process.env.NODE_ENV === 'test'
-    ? {
-        presets: ['@babel/preset-env'],
-      }
-    : {
-        ignore: [/__mocks__/],
-      }),
+  presets: [],
 };
+
+if (process.env.NODE_ENV === 'test') {
+  config.presets.push('@babel/preset-env');
+}
+
+module.exports = config;

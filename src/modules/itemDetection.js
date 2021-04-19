@@ -1,3 +1,6 @@
+import _ from 'lodash';
+import Jimp from 'jimp';
+import { linearRegressionLine, linearRegression } from 'simple-statistics';
 import { getGoodRanges, findRangeIndex } from './range';
 
 const ORIG_MAX_WIDTH = 960;
@@ -93,8 +96,8 @@ export const itemDetection = origImg => {
     return [x, y];
   });
 
-  const getMidX = ss.linearRegressionLine(ss.linearRegression(xPoints));
-  const getMidY = ss.linearRegressionLine(ss.linearRegression(yPoints));
+  const getMidX = linearRegressionLine(linearRegression(xPoints));
+  const getMidY = linearRegressionLine(linearRegression(yPoints));
 
   /**
    * 取得所有素材位置

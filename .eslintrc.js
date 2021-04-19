@@ -10,9 +10,6 @@ module.exports = {
   rules: {
     curly: ['error', 'multi-line'],
   },
-  globals: Object.fromEntries(
-    ['_', 'OCRAD', 'Jimp', 'JSZip', 'ss'].map(name => [name, 'readonly']),
-  ),
   overrides: [
     {
       files: ['**/*.spec.js', '**/*.jm.js'],

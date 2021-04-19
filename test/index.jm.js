@@ -1,9 +1,18 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { DeportRecognizer } from '../src';
-import getUniversalResult from '../src/getUniversalResult';
+import { DeportRecognizer, toUniversalResult } from '../src';
 
-jest.mock('../src/requirements');
+Object.defineProperty(global, 'ImageData', {
+  value: class ImageData {
+    constructor(data, width, height) {
+      Object.defineProperties(this, {
+        data: { value: data },
+        width: { value: width },
+        height: { value: height },
+      });
+    }
+  },
+});
 
 beforeAll(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -27,6 +36,6 @@ export default dir => {
     });
     const imgName = readdirSync(dir).find(name => name.startsWith('image'));
     const { data } = await dr.recognize(rp(imgName));
-    expect(getUniversalResult(data)).toEqual(require(rp('result.json')));
+    expect(toUniversalResult(data)).toEqual(require(rp('result.json')));
   });
 };
