@@ -69,9 +69,9 @@ export const splitNumbers = ({ splitedImgs, itemWidth, simResults, IMG_SL }) => 
     removeRangesNoise(numImgBlackRanges, NUM_MIN_WIDTH);
     // 开头贴边块不要
     if (numImgBlackRanges[0]?.start === 0) numImgBlackRanges.splice(0, 1);
-    _.remove(numImgBlackRanges, ({ start, length }) => {
+    _.remove(numImgBlackRanges, ({ start, length }, j) => {
       // 间距过大不要
-      const next = numImgBlackRanges[i + 1];
+      const next = numImgBlackRanges[j + 1];
       if (next && next.start - (start + length) > NUM_MAX_SPACE) return true;
       // 上下贴边块不要
       for (let x = start; x < start + length; x++) {
