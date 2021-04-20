@@ -1,6 +1,7 @@
 import { babel } from '@rollup/plugin-babel';
-import del from 'rollup-plugin-delete';
 import externalGlobals from 'rollup-plugin-external-globals';
+import copy from 'rollup-plugin-copy';
+import del from 'rollup-plugin-delete';
 
 const commonConfig = {
   external: [/^lodash/, /^@arkntools/, 'jimp', 'jszip', 'simple-statistics'],
@@ -13,7 +14,11 @@ const commonConfig = {
 const config = [
   {
     input: 'src/index.js',
-    plugins: [del({ targets: 'dist/*' }), babel({ babelHelpers: 'bundled' })],
+    plugins: [
+      ...(process.env.ROLLUP_WATCH ? [] : [del({ targets: 'dist/*' })]),
+      copy({ targets: [{ src: 'package.json', dest: 'dist' }] }),
+      babel({ babelHelpers: 'bundled' }),
+    ],
     ...commonConfig,
   },
   {
