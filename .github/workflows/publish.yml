@@ -11,7 +11,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
       - name: Test
