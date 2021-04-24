@@ -3,28 +3,28 @@ import externalGlobals from 'rollup-plugin-external-globals';
 import copy from 'rollup-plugin-copy';
 import del from 'rollup-plugin-delete';
 
-const commonConfig = {
+const { ROLLUP_WATCH, CI } = process.env;
+
+const getConfig = (plugins = []) => ({
   external: [/^lodash/, /^@arkntools/, 'jimp', 'jszip', 'simple-statistics'],
   output: {
     dir: 'dist',
     format: 'esm',
   },
-};
+  plugins: [babel({ babelHelpers: 'bundled' }), ...plugins.filter(v => v)],
+});
 
-const config = [
+export default [
   {
     input: 'src/index.js',
-    plugins: [
-      ...(process.env.ROLLUP_WATCH ? [] : [del({ targets: 'dist/*' })]),
-      copy({ targets: [{ src: 'package.json', dest: 'dist' }] }),
-      babel({ babelHelpers: 'bundled' }),
-    ],
-    ...commonConfig,
+    ...getConfig([
+      !ROLLUP_WATCH && del({ targets: 'dist/*' }),
+      CI && copy({ targets: [{ src: ['package.json', 'README.md'], dest: 'dist' }] }),
+    ]),
   },
   {
     input: 'src/worker.js',
-    plugins: [
-      babel({ babelHelpers: 'bundled' }),
+    ...getConfig([
       externalGlobals({
         lodash: '_',
         jimp: 'Jimp',
@@ -32,14 +32,10 @@ const config = [
         'simple-statistics': 'ss',
         '@arkntools/scripts/dist/ocrad': 'OCRAD',
       }),
-    ],
-    ...commonConfig,
+    ]),
   },
   {
     input: 'src/tools.js',
-    plugins: [babel({ babelHelpers: 'bundled' })],
-    ...commonConfig,
+    ...getConfig(),
   },
 ];
-
-export default config;
