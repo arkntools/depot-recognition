@@ -57,7 +57,7 @@ export class DeportRecognizer {
 
   /**
    * @param {string | Buffer} file
-   * @param {(text: string) => void} updateStep
+   * @param {(text: number) => void} updateStep
    * @returns
    */
   async recognize(file, updateStep = () => {}) {
