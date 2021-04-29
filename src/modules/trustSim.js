@@ -11,6 +11,10 @@ export const MAX_TRUST_DIFF = {
   31024: 0.22,
 };
 
+/**
+ * @param {{ name: string, diff: number }} sim Similarity object
+ * @returns Is this recognition result acceptable
+ */
 export const isTrustSim = sim => {
   if (!sim) return false;
   const { diff, name } = sim;

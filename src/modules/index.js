@@ -23,17 +23,20 @@ export const setDebug = isDebug => {
 export class DeportRecognizer {
   /**
    * @typedef {Object} RecognizerConfig
-   * @property {string[]} order
-   * @property {*} pkg
+   * @property {string[]} order Item order
+   * @property {*} pkg Item images zip, can be any parameter or an array of parameters accepted by JSZip.loadAsync
    */
 
   /**
-   * @param {RecognizerConfig} config
+   * @param {RecognizerConfig} config Recognizer config
    */
   constructor(config) {
     this.config = config;
   }
 
+  /**
+   * @private
+   */
   async loadResource() {
     if (this.itemImgs) return this.itemImgs;
     const zip = await JSZip.loadAsync(..._.castArray(this.config.pkg));
@@ -56,23 +59,23 @@ export class DeportRecognizer {
   }
 
   /**
-   * @param {string | Buffer} file
-   * @param {(text: number) => void} updateStep
-   * @returns
+   * @param {string | Buffer} file Image file URL or buffer, support blob URL
+   * @param {(text: number) => void} onProgress A callback function to transfer recognition progress
+   * @returns Recognition result
    */
-  async recognize(file, updateStep = () => {}) {
+  async recognize(file, onProgress = () => {}) {
     const debugImgs = [];
-    const updateNextStep = (() => {
-      let step = 0;
-      return () => updateStep(step++);
+    const nextProgress = (() => {
+      let progress = 0;
+      return () => onProgress(progress++);
     })();
 
     // 加载
-    updateNextStep();
+    nextProgress();
     const [origImg, itemImgs] = await Promise.all([Jimp.read(file), this.loadResource()]);
 
     // 切图
-    updateNextStep();
+    nextProgress();
     const { posisions, itemWidth, debugImgs: itemDetectionDebugImgs } = itemDetection(origImg);
     if (self.IS_DEBUG) debugImgs.push(...itemDetectionDebugImgs);
     const splitedImgs = posisions.map(({ pos: { x, y } }) =>
@@ -83,15 +86,15 @@ export class DeportRecognizer {
     );
 
     // 相似度计算
-    updateNextStep();
+    nextProgress();
     const simResults = getSims(compareImgs, itemImgs);
 
     // 切数字图
-    updateNextStep();
+    nextProgress();
     const numImgs = splitNumbers({ splitedImgs, itemWidth, simResults, IMG_SL });
 
     // 识别数字
-    updateNextStep();
+    nextProgress();
     const numResults = await recognizeNumbers(numImgs);
 
     return {

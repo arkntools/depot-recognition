@@ -9,6 +9,10 @@ const fromPairs = pairs => {
   return obj;
 };
 
+/**
+ * @param {*} data Recognition result object
+ * @returns {{ [name: string]: number }} A simple result object
+ */
 export const toUniversalResult = data =>
   fromPairs(
     data
