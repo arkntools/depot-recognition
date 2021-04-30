@@ -12,8 +12,9 @@ export const MAX_TRUST_DIFF = {
 };
 
 /**
+ * Determine whether a similarity result is trustable.
  * @param {{ name: string, diff: number }} sim Similarity object
- * @returns Is this recognition result acceptable
+ * @returns {boolean} Trustable
  */
 export const isTrustSim = sim => {
   if (!sim) return false;

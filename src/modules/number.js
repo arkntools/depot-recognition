@@ -124,7 +124,6 @@ export const recognizeNumbers = numImgs => {
         text,
         value,
         warn: text.replace(/ /g, '') !== String(value),
-        edit: false,
       };
     }),
   );

@@ -10,6 +10,7 @@ const fromPairs = pairs => {
 };
 
 /**
+ * Convert recognition result to simple result.
  * @param {*} data Recognition result object
  * @returns {{ [name: string]: number }} A simple result object
  */

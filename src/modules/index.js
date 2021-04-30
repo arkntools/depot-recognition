@@ -16,15 +16,15 @@ const NUM_MASK_IMG = new Jimp(54, 28, 'white');
 const NUM_MASK_X = 39;
 const NUM_MASK_Y = 70;
 
-export const setDebug = isDebug => {
-  self.IS_DEBUG = isDebug;
-};
-
 export class DeportRecognizer {
+  /**
+   * @typedef {String | ArrayBuffer | Uint8Array | Buffer | Blob} ZipData
+   */
+
   /**
    * @typedef {Object} RecognizerConfig
    * @property {string[]} order Item order
-   * @property {*} pkg Item images zip, can be any parameter or an array of parameters accepted by JSZip.loadAsync
+   * @property {ZipData | [ZipData, import('jszip').JSZipLoadOptions]} pkg Item images zip, which is a parameter or an array of parameters accepted by {@link https://stuk.github.io/jszip/documentation/api_jszip/load_async.html JSZip.loadAsync}
    */
 
   /**
@@ -32,6 +32,15 @@ export class DeportRecognizer {
    */
   constructor(config) {
     this.config = config;
+    this.isDebug = false;
+  }
+
+  /**
+   * Some process images will be output in debug mode.
+   * @param {boolean} enable
+   */
+  setDebug(enable) {
+    this.isDebug = enable;
   }
 
   /**
@@ -59,8 +68,9 @@ export class DeportRecognizer {
   }
 
   /**
+   * Recognize depot image.
    * @param {string | Buffer} file Image file URL or buffer, support blob URL
-   * @param {(text: number) => void} onProgress A callback function to transfer recognition progress
+   * @param {(text: number) => void} onProgress A callback function, will be called when progress update
    * @returns Recognition result
    */
   async recognize(file, onProgress = () => {}) {
@@ -76,8 +86,11 @@ export class DeportRecognizer {
 
     // 切图
     nextProgress();
-    const { posisions, itemWidth, debugImgs: itemDetectionDebugImgs } = itemDetection(origImg);
-    if (self.IS_DEBUG) debugImgs.push(...itemDetectionDebugImgs);
+    const { posisions, itemWidth, debugImgs: itemDetectionDebugImgs } = itemDetection(
+      origImg,
+      this.isDebug,
+    );
+    if (this.isDebug) debugImgs.push(...itemDetectionDebugImgs);
     const splitedImgs = posisions.map(({ pos: { x, y } }) =>
       origImg.clone().crop(x, y, itemWidth, itemWidth),
     );

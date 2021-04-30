@@ -21,8 +21,9 @@ const EDGE_CORE = [
  * 检测素材位置
  *
  * @param {Jimp} origImg
+ * @param {number} isDebug
  */
-export const itemDetection = origImg => {
+export const itemDetection = (origImg, isDebug = false) => {
   /**
    * 缩放原图
    */
@@ -125,7 +126,7 @@ export const itemDetection = origImg => {
     const top = (midY - (itemWidth * ITEM_VIEW_SCALE) / 2) / height;
     const bottom = 1 - (midY + (itemWidth * ITEM_VIEW_SCALE) / 2) / height;
     return {
-      pos: { y },
+      pos: { y, l: trueItemWidth },
       view: { top, bottom },
     };
   });
@@ -151,7 +152,7 @@ export const itemDetection = origImg => {
   const debugImgs = [];
 
   // debug square
-  if (self.IS_DEBUG) {
+  if (isDebug) {
     const debugSquareImg = origImg.clone();
     posisions.forEach(({ pos: { x, y } }) => {
       for (let ix = x; ix < x + trueItemWidth; ix++) {
@@ -167,7 +168,7 @@ export const itemDetection = origImg => {
   }
 
   // debug row
-  if (self.IS_DEBUG) {
+  if (isDebug) {
     const debugRowImg = edgeImg.clone();
     yRanges.forEach(({ start, length }) => {
       for (let ix = 0; ix < width; ix++) {
@@ -181,7 +182,7 @@ export const itemDetection = origImg => {
   }
 
   // debug col
-  if (self.IS_DEBUG) {
+  if (isDebug) {
     const debugColImg = edgeImg.clone();
     xRangess.forEach((xRanges, irow) => {
       const row = yRanges[irow];
