@@ -11,7 +11,7 @@ Depot recognition module for [Arknights Toolbox](https://github.com/arkntools/ar
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/arkntools/depot-recognition/Publish?style=flat-square)](https://github.com/arkntools/depot-recognition/actions/workflows/publish.yml)
 [![Feedback](https://img.shields.io/badge/feedback-here-blueviolet?style=flat-square)](https://github.com/arkntools/arknights-toolbox/discussions/101)
 
-[中文文档](README_zh.md)
+[中文文档](https://github.com/arkntools/depot-recognition/blob/main/README_zh.md)
 
 </div>
 
