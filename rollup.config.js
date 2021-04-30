@@ -21,7 +21,7 @@ const getConfig = (plugins = []) => ({
   ],
 });
 
-export default [
+const config = [
   {
     input: 'src/index.js',
     ...getConfig([
@@ -46,3 +46,7 @@ export default [
     ...getConfig(),
   },
 ];
+
+config[1].output.splice(0, 1);
+
+export default config;
