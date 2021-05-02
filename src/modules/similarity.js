@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Jimp from 'jimp';
-import { isTrustSim } from './trustSim';
+import { isTrustedResult } from './isTrustedResult';
 
 /**
  * 相似度计算
@@ -32,7 +32,7 @@ export const getSims = (inputs, compares) => {
   }
   const inputCenterI = Math.floor(inputs.length / 2);
   const inputCenterSim = getSim(inputs[inputCenterI], compares);
-  if (isTrustSim(inputCenterSim)) {
+  if (isTrustedResult(inputCenterSim)) {
     // 受信结果
     const compareCenterI = compares.findIndex(([name]) => name === inputCenterSim.name);
     return [
@@ -46,7 +46,7 @@ export const getSims = (inputs, compares) => {
     const leftLastSim = _.findLast(leftSims, sim => sim);
     const rightSims = getSims(
       inputs.slice(inputCenterI + 1),
-      isTrustSim(leftLastSim)
+      isTrustedResult(leftLastSim)
         ? compares.slice(compares.findIndex(([name]) => name === leftLastSim.name) + 1)
         : compares,
     );

@@ -1,4 +1,4 @@
-import { isTrustSim } from './trustSim';
+import { isTrustedResult } from './isTrustedResult';
 
 /**
  * @param {[key: string, value: any][]} pairs
@@ -10,13 +10,9 @@ const fromPairs = pairs => {
 };
 
 /**
- * Convert recognition result to simple result.
+ * Convert recognition result to simple trust result.
  * @param {*} data Recognition result object
  * @returns {{ [name: string]: number }} A simple result object
  */
-export const toUniversalResult = data =>
-  fromPairs(
-    data
-      .filter(({ sim }) => isTrustSim(sim))
-      .map(({ num: { value }, sim: { name } }) => [name, value]),
-  );
+export const toSimpleTrustedResult = data =>
+  fromPairs(data.filter(isTrustedResult).map(({ num: { value }, sim: { name } }) => [name, value]));

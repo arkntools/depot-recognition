@@ -1,2 +1,2 @@
-export * from './modules/trustSim';
-export * from './modules/toUniversalResult';
+export * from './modules/isTrustedResult';
+export * from './modules/toSimpleTrustedResult';

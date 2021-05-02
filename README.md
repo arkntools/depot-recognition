@@ -26,13 +26,13 @@ yarn add @arkntools/depot-recognition
 
 ## Usage
 
-You need to provide [a zip of material images](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.zip) and [sorting order of materials in deport](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json). The name of the material must be material ID
+You need to provide [a zip of material images](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.zip) and [sorting order of materials in deport](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json). The name of the material must be material ID.
 
 ### Node
 
 ```js
 const fetch = require('node-fetch').default;
-const { DeportRecognizer, isTrustSim, toUniversalResult } = require('@arkntools/depot-recognition');
+const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@arkntools/depot-recognition');
 
 (async () => {
   const [order, pkg] = await Promise.all(
@@ -43,9 +43,8 @@ const { DeportRecognizer, isTrustSim, toUniversalResult } = require('@arkntools/
   );
   const dr = new DeportRecognizer({ order, pkg });
   const { data } = await dr.recognize('IMAGE_PATH');
-  const trustData = data.filter(({ sim }) => isTrustSim(sim)); // get trust result
-  console.log(trustData); // full result
-  console.log(toUniversalResult(trustData)); // simple result
+  console.log(data.filter(isTrustedResult)); // full trust result
+  console.log(toSimpleTrustedResult(data)); // simple trust result
 })();
 ```
 
@@ -55,7 +54,7 @@ Need [comlink-loader](https://www.npmjs.com/package/comlink-loader)
 
 ```js
 import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/es/worker';
-import { isTrustSim, toUniversalResult } from '@arkntools/depot-recognition/es/tools';
+import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/es/tools';
 import { transfer } from 'comlink';
 
 import order from 'path/to/order.json';
@@ -72,9 +71,8 @@ const initRecognizer = async () => {
 (async () => {
   const dr = await initRecognizer();
   const { data } = await dr.recognize('IMG_URL'); // can be blob url
-  const trustData = data.filter(({ sim }) => isTrustSim(sim)); // get trust result
-  console.log(trustData); // full result
-  console.log(toUniversalResult(trustData)); // simple result
+  console.log(data.filter(isTrustedResult)); // full trust result
+  console.log(toSimpleTrustedResult(data)); // simple trust result
 })();
 ```
 
@@ -94,12 +92,12 @@ new DeportRecognizer(config)
 
 ##### `RecognizerConfig`
 
-| Name  | Type       | Description                                                                                                                                                                       |
-| ----- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| order | `string[]` | Sorting order of materials in deport.                                                                                                                                             |
-| pkg   | `any`      | A zip of material images, which is a parameter or an array of parameters that [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html) can accept. |
+| Name  | Type       | Description                                                                                                                                                                   |
+| ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| order | `string[]` | Sorting order of materials in deport.                                                                                                                                         |
+| pkg   | `any`      | A zip of material images, which is a parameter or an array of parameters accepted by [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html). |
 
-### `DeportRecognizer.recognize(file, updateStepCallback): Object`
+### `DeportRecognizer.recognize(file, onProgress): Object`
 
 Recognize deport image.
 
@@ -169,17 +167,17 @@ Set debug mode.
 | ------ | --------- | ------------------------------------------------------------------- |
 | enable | `boolean` | Will out put some base64 images in recognition result when enabled. |
 
-### `isTrustSim(sim): boolean`
+### `isTrustedResult(result): boolean`
 
 Determine whether a similarity result is trustable.
 
 #### Parameters
 
-| Name | Type                                    | Description                    |
-| ---- | --------------------------------------- | ------------------------------ |
-| sim  | [`SimilarityResult`](#similarityresult) | Recognition similarity result. |
+| Name   | Type                                    | Description                    |
+| ------ | --------------------------------------- | ------------------------------ |
+| result | [`SimilarityResult`](#similarityresult) | Recognition similarity result. |
 
-### `toUniversalResult(data): Object`
+### `toSimpleTrustedResult(data): Object`
 
 Convert the similarity result array into a simple result object.
 

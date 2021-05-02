@@ -12,13 +12,19 @@ export const MAX_TRUST_DIFF = {
 };
 
 /**
+ * @typedef SimilarityObject
+ * @property {string} name
+ * @property {diff} number
+ */
+
+/**
  * Determine whether a similarity result is trustable.
- * @param {{ name: string, diff: number }} sim Similarity object
+ * @param {SimilarityObject | { sim: SimilarityObject }} result Similarity result
  * @returns {boolean} Trustable
  */
-export const isTrustSim = sim => {
-  if (!sim) return false;
-  const { diff, name } = sim;
+export const isTrustedResult = result => {
+  if (!result) return false;
+  const { diff, name } = result.sim || result;
   const maxTrustDiff = name in MAX_TRUST_DIFF ? MAX_TRUST_DIFF[name] : MAX_TRUST_DIFF.DEFAULT;
   return diff < maxTrustDiff;
 };

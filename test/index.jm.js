@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { DeportRecognizer, toUniversalResult } from '../src';
+import { DeportRecognizer, toSimpleTrustedResult } from '../src';
 
 Object.defineProperty(global, 'ImageData', {
   value: class ImageData {
@@ -36,6 +36,6 @@ export default dir => {
     });
     const imgName = readdirSync(dir).find(name => name.startsWith('image'));
     const { data } = await dr.recognize(rp(imgName));
-    expect(toUniversalResult(data)).toEqual(require(rp('result.json')));
+    expect(toSimpleTrustedResult(data)).toEqual(require(rp('result.json')));
   });
 };

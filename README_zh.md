@@ -32,7 +32,7 @@ yarn add @arkntools/depot-recognition
 
 ```js
 const fetch = require('node-fetch').default;
-const { DeportRecognizer, isTrustSim, toUniversalResult } = require('@arkntools/depot-recognition');
+const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@arkntools/depot-recognition');
 
 (async () => {
   const [order, pkg] = await Promise.all(
@@ -43,9 +43,8 @@ const { DeportRecognizer, isTrustSim, toUniversalResult } = require('@arkntools/
   );
   const dr = new DeportRecognizer({ order, pkg });
   const { data } = await dr.recognize('IMAGE_PATH');
-  const trustData = data.filter(({ sim }) => isTrustSim(sim)); // 筛选置信度高的结果
-  console.log(trustData); // 详细结果：包含切图坐标、与其它材料比较的相似度等
-  console.log(toUniversalResult(trustData)); // 简单结果：{ 材料ID: 数量 }
+  console.log(data.filter(isTrustedResult)); // 详细的置信度高的结果：包含切图坐标、与其它材料比较的相似度等
+  console.log(toSimpleTrustedResult(data)); // 简单的置信度高的结果：{ 材料ID: 数量 }
 })();
 ```
 
@@ -55,7 +54,7 @@ const { DeportRecognizer, isTrustSim, toUniversalResult } = require('@arkntools/
 
 ```js
 import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/es/worker';
-import { isTrustSim, toUniversalResult } from '@arkntools/depot-recognition/es/tools';
+import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/es/tools';
 import { transfer } from 'comlink';
 
 import order from 'path/to/order.json';
@@ -72,9 +71,8 @@ const initRecognizer = async () => {
 (async () => {
   const dr = await initRecognizer();
   const { data } = await dr.recognize('IMG_URL'); // 可以是 Blob URL
-  const trustData = data.filter(({ sim }) => isTrustSim(sim)); // 筛选置信度高的结果
-  console.log(trustData); // 详细结果：包含切图坐标、与其它材料比较的相似度等
-  console.log(toUniversalResult(trustData)); // 简单结果：{ 材料ID: 数量 }
+  console.log(data.filter(isTrustedResult)); // 详细的置信度高的结果：包含切图坐标、与其它材料比较的相似度等
+  console.log(toSimpleTrustedResult(data)); // 简单的置信度高的结果：{ 材料ID: 数量 }
 })();
 ```
 
@@ -99,7 +97,7 @@ new DeportRecognizer(config)
 | order | `string[]` | 材料在仓库中的排序顺序                                                                                                                    |
 | pkg   | `any`      | 材料图片的压缩包，是 [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html) 可接受的一个参数或参数的数组 |
 
-### `DeportRecognizer.recognize(file, updateStepCallback): Object`
+### `DeportRecognizer.recognize(file, onProgress): Object`
 
 识别仓库图片
 
@@ -169,17 +167,17 @@ new DeportRecognizer(config)
 | ------ | --------- | -------------------------------------------- |
 | enable | `boolean` | 设置为调试模式，识别时会额外输出一些过程图片 |
 
-### `isTrustSim(sim): boolean`
+### `isTrustedResult(result): boolean`
 
 判定一个相似度结果是否可信
 
 #### Parameters
 
-| Name | Type                                    | Description    |
-| ---- | --------------------------------------- | -------------- |
-| sim  | [`SimilarityResult`](#similarityresult) | 识别相似度结果 |
+| Name   | Type                                    | Description    |
+| ------ | --------------------------------------- | -------------- |
+| result | [`SimilarityResult`](#similarityresult) | 识别相似度结果 |
 
-### `toUniversalResult(data): Object`
+### `toSimpleTrustedResult(data): Object`
 
 将相似度结果数组转化为简单的结果对象
 
