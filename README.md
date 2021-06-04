@@ -113,7 +113,7 @@ Recognize deport image.
 | Name  | Type                                      | Description                                                                                                 |
 | ----- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | data  | [`SimilarityResult[]`](#similarityresult) | Array of recognition similarity result.                                                                     |
-| debug | `string[]`                                | Will contain some base64 images after using [setDebug](#deportrecognizersetdebugisdebug) to set debug mode. |
+| debug | `string[]`                                | Will contain some base64 images after using [setDebug](#deportrecognizersetdebugenable-void) to set debug mode. |
 
 ##### `SimilarityResult`
 

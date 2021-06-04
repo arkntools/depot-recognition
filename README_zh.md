@@ -113,7 +113,7 @@ new DeportRecognizer(config)
 | Name  | Type                                      | Description                                                                                      |
 | ----- | ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | data  | [`SimilarityResult[]`](#similarityresult) | 识别相似度结果的数组                                                                             |
-| debug | `string[]`                                | 使用 [setDebug](#deportrecognizersetdebugisdebug) 设置调试模式后会输出一些 base64 形式的过程图片 |
+| debug | `string[]`                                | 使用 [setDebug](#deportrecognizersetdebugenable-void) 设置调试模式后会输出一些 base64 形式的过程图片 |
 
 ##### `SimilarityResult`
 
