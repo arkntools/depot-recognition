@@ -53,7 +53,7 @@ export const itemDetection = (origImg, isDebug = false) => {
   });
   const yRanges = getGoodRanges(yWhite.map(v => v / 255 > width * 0.005));
   // const itemWidth = ss.median(_.map(yRanges, 'length'));
-  let itemWidth = _.minBy(yRanges, 'length').length; // 最小值一般为极限高度，和真正边长最接近
+  let itemWidth = _.min(_.map(yRanges, 'length')); // 最小值一般为极限高度，和真正边长最接近
 
   const xWhites = yRanges.map(() => new Array(width).fill(0));
   edgeImg.scan(0, 0, width, height, function (x, y, idx) {

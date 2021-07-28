@@ -149,8 +149,8 @@ new DeportRecognizer(config)
   },
   // 材料数量信息
   num: {
-    img: string, // 处理后的数字图片，base64
-    text: string, // 识别结果，可能含有空格( )或下划线(_)等非数字字符
+    img: string,   // 处理后的数字图片，base64
+    text: string,  // 识别结果，可能含有空格( )或下划线(_)等非数字字符
     value: number, // 去除非数字字符后的数字结果，若没识别出数字则默认为 1
     warn: boolean, // 排除空格影响后识别结果(text)是否与识别数字(value)不一致
   },

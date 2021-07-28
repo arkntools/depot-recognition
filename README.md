@@ -110,9 +110,9 @@ Recognize deport image.
 
 #### Returns
 
-| Name  | Type                                      | Description                                                                                                 |
-| ----- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| data  | [`SimilarityResult[]`](#similarityresult) | Array of recognition similarity result.                                                                     |
+| Name  | Type                                      | Description                                                                                                     |
+| ----- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| data  | [`SimilarityResult[]`](#similarityresult) | Array of recognition similarity result.                                                                         |
 | debug | `string[]`                                | Will contain some base64 images after using [setDebug](#deportrecognizersetdebugenable-void) to set debug mode. |
 
 ##### `SimilarityResult`
@@ -149,8 +149,8 @@ Recognize deport image.
   },
   // Material quantity
   num: {
-    img: string, // Processed digital picture in base64
-    text: string, // The recognition result, may contain non-numeric characters such as spaces ( ) or underscores (_)
+    img: string,   // Processed digital picture in base64
+    text: string,  // The recognition result, may contain non-numeric characters such as spaces ( ) or underscores (_)
     value: number, // The numerical result after removing the non-numeric character, the default is 1 when the number is not recognized
     warn: boolean, // Whether the recognition result (text) is the same as the recognition number (value) after excluding the influence of spaces
   },
@@ -163,9 +163,9 @@ Set debug mode.
 
 #### Parameters
 
-| Name   | Type      | Description                                                         |
-| ------ | --------- | ------------------------------------------------------------------- |
-| enable | `boolean` | Will out put some base64 images in recognition result when enabled. |
+| Name   | Type      | Description                                                        |
+| ------ | --------- | ------------------------------------------------------------------ |
+| enable | `boolean` | Will output some base64 images in recognition result when enabled. |
 
 ### `isTrustedResult(result): boolean`
 
