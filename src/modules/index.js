@@ -50,21 +50,30 @@ export class DeportRecognizer {
     if (this.itemImgs) return this.itemImgs;
     const zip = await JSZip.loadAsync(..._.castArray(this.config.pkg));
     const items = await Promise.all(
-      this.config.order.map(async id =>
-        Jimp.read(await zip.file(`${id}.png`).async('arraybuffer')),
-      ),
+      this.config.order.map(async id => {
+        try {
+          const file = zip.file(`${id}.png`);
+          if (!file) {
+            console.warn(`[depot-recognition] ${id}.png not exist in pkg`);
+            return;
+          }
+          return Jimp.read(await file.async('arraybuffer'));
+        } catch (e) {
+          console.error('[depot-recognition]', e);
+        }
+      }),
     );
     this.itemImgs = _.zip(
       this.config.order,
       items.map(item =>
         item
-          .crop(IMG_CROP_XY, IMG_CROP_XY, IMG_CROP_SL, IMG_CROP_SL)
+          ?.crop(IMG_CROP_XY, IMG_CROP_XY, IMG_CROP_SL, IMG_CROP_SL)
           .resize(IMG_SL, IMG_SL, Jimp.RESIZE_BEZIER)
           .composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y)
           .circle(),
       ),
     );
-    return this.itemImgs;
+    return this.itemImgs.filter(([, img]) => img);
   }
 
   /**
@@ -86,10 +95,11 @@ export class DeportRecognizer {
 
     // 切图
     nextProgress();
-    const { posisions, itemWidth, debugImgs: itemDetectionDebugImgs } = itemDetection(
-      origImg,
-      this.isDebug,
-    );
+    const {
+      posisions,
+      itemWidth,
+      debugImgs: itemDetectionDebugImgs,
+    } = itemDetection(origImg, this.isDebug);
     if (this.isDebug) debugImgs.push(...itemDetectionDebugImgs);
     const splitedImgs = posisions.map(({ pos: { x, y } }) =>
       origImg.clone().crop(x, y, itemWidth, itemWidth),
