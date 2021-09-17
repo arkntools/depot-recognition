@@ -72,8 +72,8 @@ export class DeportRecognizer {
           .composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y)
           .circle(),
       ),
-    );
-    return this.itemImgs.filter(([, img]) => img);
+    ).filter(([, img]) => img);
+    return this.itemImgs;
   }
 
   /**
