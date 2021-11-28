@@ -1,38 +1,43 @@
 import _ from 'lodash';
 import Jimp from 'jimp';
-import { isTrustedResult } from './isTrustedResult';
+import { isTrustedSimResult } from '../utils/trustedResult';
 
-/**
- * 相似度计算
- *
- * @param {Jimp} input
- * @param {[string, Jimp][]} compares
- * @returns {{ name: string, diff: number, diffs: [string, number][] }}
- */
-export const getSim = (input, compares) => {
+export interface RecognizeSimilarityResult {
+  /** ID of most similar material */
+  name: string;
+  /** The degree of difference (0~1) between them */
+  diff: number;
+  /** Comparative record of the material, an array of material ID and difference degree */
+  diffs: Array<[string, number]>;
+}
+
+export type CompareItemData = Array<[string, Jimp]>;
+
+/** 相似度计算 */
+export const getSim = (
+  input: Jimp,
+  compares: CompareItemData,
+): RecognizeSimilarityResult | null => {
   if (!compares.length) return null;
   const diffs = _.sortBy(
-    compares.map(([id, img]) => [id, Jimp.diff(input, img, 0.2).percent]),
+    compares.map<[string, number]>(([id, img]) => [id, Jimp.diff(input, img, 0.2).percent]),
     1,
   );
   const [name, diff] = diffs[0];
   return { name, diff, diffs };
 };
 
-/**
- * 相似度组计算
- *
- * @param {Jimp[]} inputs
- * @param {[string, Jimp][]} compares
- * @returns {{ name: string, diff: number, diffs: [string, number][] }[]}
- */
-export const getSims = (inputs, compares) => {
+/** 相似度计算（二分法） */
+export const getSims = (
+  inputs: Jimp[],
+  compares: CompareItemData,
+): Array<RecognizeSimilarityResult | null> => {
   if (inputs.length <= 2) {
     return inputs.map(input => getSim(input, compares));
   }
   const inputCenterI = Math.floor(inputs.length / 2);
   const inputCenterSim = getSim(inputs[inputCenterI], compares);
-  if (isTrustedResult(inputCenterSim)) {
+  if (isTrustedSimResult(inputCenterSim)) {
     // 受信结果
     const compareCenterI = compares.findIndex(([name]) => name === inputCenterSim.name);
     return [
@@ -43,10 +48,10 @@ export const getSims = (inputs, compares) => {
   } else {
     // 不受信结果
     const leftSims = getSims(inputs.slice(0, inputCenterI), compares);
-    const leftLastSim = _.findLast(leftSims, sim => sim);
+    const leftLastSim: RecognizeSimilarityResult | null = _.findLast(leftSims, sim => sim) as any;
     const rightSims = getSims(
       inputs.slice(inputCenterI + 1),
-      isTrustedResult(leftLastSim)
+      isTrustedSimResult(leftLastSim)
         ? compares.slice(compares.findIndex(([name]) => name === leftLastSim.name) + 1)
         : compares,
     );

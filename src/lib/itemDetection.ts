@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Jimp from 'jimp';
-import { linearRegressionLine, linearRegression } from 'simple-statistics';
+import { linearRegressionLine, linearRegression, median } from 'simple-statistics';
 import { getGoodRanges, findRangeIndex } from './range';
 
 const ORIG_MAX_WIDTH = 960;
@@ -17,17 +17,9 @@ const EDGE_CORE = [
   [1, 1, 1],
 ];
 
-/**
- * 检测素材位置
- *
- * @param {Jimp} origImg
- * @param {number} isDebug
- */
-export const itemDetection = (origImg, isDebug = false) => {
-  /**
-   * 缩放原图
-   */
-
+/** 检测素材位置 */
+export const itemDetection = (origImg: Jimp, isDebug = false) => {
+  // 缩放原图
   const img = origImg.clone();
   const scale = (() => {
     const w = img.getWidth();
@@ -38,24 +30,20 @@ export const itemDetection = (origImg, isDebug = false) => {
     return w / img.getWidth();
   })();
 
-  /**
-   * 得到比较标准的若干个素材位置
-   */
-
+  // 得到比较标准的若干个素材位置
   const edgeImg = img.clone().greyscale().convolution(EDGE_CORE);
   const width = edgeImg.getWidth();
   const height = edgeImg.getHeight();
 
-  const yWhite = new Array(height).fill(0);
+  const yWhite: number[] = new Array(height).fill(0);
   const removedEdgeWith = Math.round(width * 0.15); // 去除可能的干扰
   edgeImg.scan(removedEdgeWith, 0, width - removedEdgeWith, height, function (x, y, idx) {
     yWhite[y] += this.bitmap.data[idx];
   });
   const yRanges = getGoodRanges(yWhite.map(v => v / 255 > width * 0.005));
-  // const itemWidth = ss.median(_.map(yRanges, 'length'));
-  let itemWidth = _.min(_.map(yRanges, 'length')); // 最小值一般为极限高度，和真正边长最接近
+  let itemWidth = _.min(_.map(yRanges, 'length'))!; // 最小值一般为极限高度，和真正边长最接近
 
-  const xWhites = yRanges.map(() => new Array(width).fill(0));
+  const xWhites: number[][] = yRanges.map(() => new Array(width).fill(0));
   edgeImg.scan(0, 0, width, height, function (x, y, idx) {
     const yRangeIndex = findRangeIndex(y, yRanges);
     if (yRangeIndex !== -1) xWhites[yRangeIndex][x] += this.bitmap.data[idx];
@@ -77,33 +65,55 @@ export const itemDetection = (origImg, isDebug = false) => {
     'length',
   );
   if (xItemWidths.length) {
-    itemWidth = _.min(xItemWidths); // 更新真正边长
+    itemWidth = _.min(xItemWidths)!; // 更新真正边长
   }
 
-  /**
-   * 素材位置的线性回归
-   */
+  // 调整行范围
+  yRanges.forEach(range => {
+    const end = range.start + range.length;
+    range.start = end - itemWidth;
+    range.length = itemWidth;
+  });
+  const yRangeSpacing = _.dropRight(yRanges).map(({ start, length }, i) => {
+    const curEnd = start + length;
+    const nextStart = yRanges[i + 1].start;
+    return nextStart - curEnd;
+  });
+  const yRangeSpacingMedian = median(yRangeSpacing);
+  const yRangeSpacingMedianRound = Math.round(yRangeSpacingMedian);
+  yRangeSpacing.forEach((v, i) => {
+    // 如果行间隔差距太大则调整
+    if (Math.abs(v - yRangeSpacingMedian) / yRangeSpacingMedian < 0.03) return;
+    const range1 = yRanges[i];
+    const range2 = yRanges[i + 1];
+    // 最后一行，直接调整
+    if (i + 1 === yRangeSpacing.length) {
+      range2.start = range1.start + range1.length + yRangeSpacingMedianRound;
+      yRangeSpacing[i] = yRangeSpacingMedianRound;
+      return;
+    }
+    // 否则根据下一行来平均
+    const range3 = yRanges[i + 2];
+    range2.start = Math.round((range1.start + range3.start) / 2);
+    yRangeSpacing[i] = range2.start - (range1.start + range1.length);
+    yRangeSpacing[i + 1] = range3.start - (range2.start + range2.length);
+  });
 
+  // 材位置的线性回归
   const xOccu = itemWidth * (1 + ITEM_X_SPACE_RATIO);
-  // const yOccu = itemWidth * (1 + ITEM_Y_SPACE_RATIO);
   const xCents = _.flatten(xRangess).map(({ start, length }) => start + length / 2);
-  const firstXCent = _.min(xCents);
+  const firstXCent = _.min(xCents)!;
   const firstColOffset = Math.ceil(firstXCent / xOccu);
   const xPoints = xCents.map(y => [firstColOffset + Math.round((y - firstXCent) / xOccu), y]);
   const yPoints = yRanges.map(({ start, length }, x) => {
-    // 大部分比较高的素材都是顶部突出导致，因此中心点直接按底部为准处理
-    const offset = length - itemWidth;
-    const y = start + (length + offset) / 2;
+    const y = start + length / 2;
     return [x, y];
   });
 
   const getMidX = linearRegressionLine(linearRegression(xPoints));
   const getMidY = linearRegressionLine(linearRegression(yPoints));
 
-  /**
-   * 取得所有素材位置
-   */
-
+  // 取得所有素材位置
   const trueItemWidth = Math.round(itemWidth * scale);
   const colNum = Math.floor((width + itemWidth * (1 + ITEM_X_SPACE_RATIO)) / xOccu);
   const rowNum = yRanges.length;
@@ -145,14 +155,11 @@ export const itemDetection = (origImg, isDebug = false) => {
     ),
   );
 
-  /**
-   * 测试用
-   */
-
+  // 测试用
   const debugImgs = [];
 
-  // debug square
   if (isDebug) {
+    // debug square
     const debugSquareImg = origImg.clone();
     posisions.forEach(({ pos: { x, y } }) => {
       for (let ix = x; ix < x + trueItemWidth; ix++) {
@@ -165,10 +172,8 @@ export const itemDetection = (origImg, isDebug = false) => {
       }
     });
     debugImgs.push(debugSquareImg);
-  }
 
-  // debug row
-  if (isDebug) {
+    // debug row
     const debugRowImg = edgeImg.clone();
     yRanges.forEach(({ start, length }) => {
       for (let ix = 0; ix < width; ix++) {
@@ -179,10 +184,8 @@ export const itemDetection = (origImg, isDebug = false) => {
       }
     });
     debugImgs.push(debugRowImg);
-  }
 
-  // debug col
-  if (isDebug) {
+    // debug col
     const debugColImg = edgeImg.clone();
     xRangess.forEach((xRanges, irow) => {
       const row = yRanges[irow];

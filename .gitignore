@@ -1,5 +1,5 @@
 /test/cache
-/test/cases/**/*.spec.js
+/test/cases/**/*.spec.*
 /dist
 
 # Logs

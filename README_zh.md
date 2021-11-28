@@ -24,7 +24,7 @@ yarn add @arkntools/depot-recognition
 
 ## 使用
 
-初始化需要提供 [材料图片的压缩包](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.zip) 和 [材料在仓库中的排序顺序](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json)，材料的命名必须为材料ID
+初始化需要提供 [材料图片的压缩包](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.pkg) 和 [材料在仓库中的排序顺序](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json)，材料的命名必须为材料ID
 
 对 [材料图片](https://github.com/arkntools/arknights-toolbox/tree/master/public/assets/img/item) 有一定要求，目前以 [PRTS 使用的材料图片](http://prts.wiki/w/%E9%81%93%E5%85%B7%E4%B8%80%E8%A7%88) 为准
 
@@ -38,7 +38,7 @@ const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@a
   const [order, pkg] = await Promise.all(
     [
       'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/itemOrder.json',
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.zip',
+      'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
     ].map(url => fetch(url).then(r => (url.endsWith('.json') ? r.json() : r.buffer()))),
   );
   const dr = new DeportRecognizer({ order, pkg });
@@ -60,12 +60,10 @@ import { transfer } from 'comlink';
 import order from 'path/to/order.json';
 import pkgURL from 'file-loader!path/to/pkg.zip';
 
-const worker = new DepotRecognitionWorker();
-
 const initRecognizer = async () => {
   const pkg = await fetch(pkgURL).then(r => r.arrayBuffer());
-  const recognizer = await new worker.DeportRecognizer(transfer({ order, pkg }, [pkg]));
-  return recognizer;
+  const worker = new DepotRecognitionWorker();
+  return await new worker.DeportRecognizer(transfer({ order, pkg }, [pkg]));
 };
 
 (async () => {
@@ -73,6 +71,31 @@ const initRecognizer = async () => {
   const { data } = await dr.recognize('IMG_URL'); // 可以是 Blob URL
   console.log(data.filter(isTrustedResult)); // 详细的置信度高的结果：包含切图坐标、与其它材料比较的相似度等
   console.log(toSimpleTrustedResult(data)); // 简单的置信度高的结果：{ 材料ID: 数量 }
+})();
+```
+
+#### Typescript
+
+如果在 typescript 中使用 comlink-loader，你需要自行补充模块定义
+
+```ts
+declare module 'comlink-loader*!@arkntools/depot-recognition/es/worker' {
+  import DepotRecognitionWorker from '@arkntools/depot-recognition/es/comlinkLoader';
+  export * from '@arkntools/depot-recognition/es/comlinkLoader';
+  export default DepotRecognitionWorker;
+}
+```
+
+然后你就可以正常导入使用了
+
+```ts
+import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/es/worker';
+
+let recognizer: DepotRecognitionWrap | undefined;
+
+(async () => {
+  const worker = new DepotRecognitionWorker();
+  recognizer = await new worker.DeportRecognizer(/* ... */);
 })();
 ```
 
@@ -94,7 +117,7 @@ new DeportRecognizer(config)
 
 | Name  | Type       | Description                                                                                                                               |
 | ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| order | `string[]` | 材料在仓库中的排序顺序                                                                                                                    |
+| order | `string[]` | 材料 ID 数组，表示材料在仓库中的排序顺序                                                                                                  |
 | pkg   | `any`      | 材料图片的压缩包，是 [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html) 可接受的一个参数或参数的数组 |
 
 ### `DeportRecognizer.recognize(file, onProgress): Object`
@@ -110,9 +133,9 @@ new DeportRecognizer(config)
 
 #### Returns
 
-| Name  | Type                                      | Description                                                                                      |
-| ----- | ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| data  | [`SimilarityResult[]`](#similarityresult) | 识别相似度结果的数组                                                                             |
+| Name  | Type                                      | Description                                                                                          |
+| ----- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| data  | [`SimilarityResult[]`](#similarityresult) | 识别相似度结果的数组                                                                                 |
 | debug | `string[]`                                | 使用 [setDebug](#deportrecognizersetdebugenable-void) 设置调试模式后会输出一些 base64 形式的过程图片 |
 
 ##### `SimilarityResult`
@@ -177,7 +200,7 @@ new DeportRecognizer(config)
 | ------ | --------------------------------------- | -------------- |
 | result | [`SimilarityResult`](#similarityresult) | 识别相似度结果 |
 
-### `toSimpleTrustedResult(data): Object`
+### `toSimpleTrustedResult(data): Record<string, number>`
 
 将相似度结果数组转化为简单的结果对象
 
@@ -189,6 +212,6 @@ new DeportRecognizer(config)
 
 #### Returns
 
-| Name                                             | Type     | Description  |
-| ------------------------------------------------ | -------- | ------------ |
-| [`SimilarityResult.sim.name`](#similarityresult) | `number` | 材料ID: 数量 |
+| Name                                               | Type     | Description  |
+| -------------------------------------------------- | -------- | ------------ |
+| [`[SimilarityResult.sim.name]`](#similarityresult) | `number` | 材料ID: 数量 |

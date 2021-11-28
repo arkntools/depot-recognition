@@ -4,13 +4,11 @@ import { DeportRecognizer, toSimpleTrustedResult } from '../src';
 
 Object.defineProperty(global, 'ImageData', {
   value: class ImageData {
-    constructor(data, width, height) {
-      Object.defineProperties(this, {
-        data: { value: data },
-        width: { value: width },
-        height: { value: height },
-      });
-    }
+    constructor(
+      public readonly data: Uint8ClampedArray,
+      public readonly width: number,
+      public readonly height: number,
+    ) {}
   },
 });
 
@@ -18,24 +16,23 @@ beforeAll(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
-/**
- * @param {string} name
- */
-const getCache = name => {
+const getCache = (name: string) => {
   const path = resolve(__dirname, 'cache', name);
-  if (name.endsWith('.json')) return require(path);
+  if (name.endsWith('.json')) return JSON.parse(readFileSync(path).toString());
   return readFileSync(path);
 };
 
-export default dir => {
-  const rp = path => join(dir, path);
+export const run = (dir: string) => {
+  const rp = (path: string) => join(dir, path);
   test('recognition', async () => {
     const dr = new DeportRecognizer({
       order: getCache('itemOrder.json'),
-      pkg: getCache('item.zip'),
+      pkg: getCache('item.pkg'),
     });
-    const imgName = readdirSync(dir).find(name => name.startsWith('image'));
+    const imgName = readdirSync(dir).find(name => name.startsWith('image'))!;
     const { data } = await dr.recognize(rp(imgName));
-    expect(toSimpleTrustedResult(data)).toEqual(require(rp('result.json')));
+    expect(toSimpleTrustedResult(data)).toEqual(
+      JSON.parse(readFileSync(rp('result.json')).toString()),
+    );
   });
 };

@@ -15,7 +15,7 @@ Depot recognition module for [Arknights Toolbox](https://github.com/arkntools/ar
 
 </div>
 
-## Install 
+## Install
 
 ```bash
 # npm
@@ -26,7 +26,7 @@ yarn add @arkntools/depot-recognition
 
 ## Usage
 
-You need to provide [a zip of material images](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.zip) and [sorting order of materials in deport](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json). The name of the material must be material ID.
+You need to provide [a zip of material images](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.pkg) and [sorting order of materials in deport](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json). The name of the material must be material ID.
 
 ### Node
 
@@ -38,7 +38,7 @@ const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@a
   const [order, pkg] = await Promise.all(
     [
       'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/itemOrder.json',
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.zip',
+      'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
     ].map(url => fetch(url).then(r => (url.endsWith('.json') ? r.json() : r.buffer()))),
   );
   const dr = new DeportRecognizer({ order, pkg });
@@ -60,12 +60,10 @@ import { transfer } from 'comlink';
 import order from 'path/to/order.json';
 import pkgURL from 'file-loader!path/to/pkg.zip';
 
-const worker = new DepotRecognitionWorker();
-
 const initRecognizer = async () => {
   const pkg = await fetch(pkgURL).then(r => r.arrayBuffer());
-  const recognizer = await new worker.DeportRecognizer(transfer({ order, pkg }, [pkg]));
-  return recognizer;
+  const worker = new DepotRecognitionWorker();
+  return await new worker.DeportRecognizer(transfer({ order, pkg }, [pkg]));
 };
 
 (async () => {
@@ -73,6 +71,31 @@ const initRecognizer = async () => {
   const { data } = await dr.recognize('IMG_URL'); // can be blob url
   console.log(data.filter(isTrustedResult)); // full trust result
   console.log(toSimpleTrustedResult(data)); // simple trust result
+})();
+```
+
+#### Typescript
+
+If you are using comlink-loader in typescript, you need to add a declaration:
+
+```ts
+declare module 'comlink-loader*!@arkntools/depot-recognition/es/worker' {
+  import DepotRecognitionWorker from '@arkntools/depot-recognition/es/comlinkLoader';
+  export * from '@arkntools/depot-recognition/es/comlinkLoader';
+  export default DepotRecognitionWorker;
+}
+```
+
+Then you can use it as normal:
+
+```ts
+import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/es/worker';
+
+let recognizer: DepotRecognitionWrap | undefined;
+
+(async () => {
+  const worker = new DepotRecognitionWorker();
+  recognizer = await new worker.DeportRecognizer(/* ... */);
 })();
 ```
 
@@ -94,7 +117,7 @@ new DeportRecognizer(config)
 
 | Name  | Type       | Description                                                                                                                                                                   |
 | ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| order | `string[]` | Sorting order of materials in deport.                                                                                                                                         |
+| order | `string[]` | Item IDs, represent the sorting order of materials in deport.                                                                                                                 |
 | pkg   | `any`      | A zip of material images, which is a parameter or an array of parameters accepted by [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html). |
 
 ### `DeportRecognizer.recognize(file, onProgress): Object`
@@ -177,7 +200,7 @@ Determine whether a similarity result is trustable.
 | ------ | --------------------------------------- | ------------------------------ |
 | result | [`SimilarityResult`](#similarityresult) | Recognition similarity result. |
 
-### `toSimpleTrustedResult(data): Object`
+### `toSimpleTrustedResult(data): Record<string, number>`
 
 Convert the similarity result array into a simple result object.
 
@@ -189,6 +212,6 @@ Convert the similarity result array into a simple result object.
 
 #### Returns
 
-| Name                                             | Type     | Description           |
-| ------------------------------------------------ | -------- | --------------------- |
-| [`SimilarityResult.sim.name`](#similarityresult) | `number` | Material ID: quantity |
+| Name                                               | Type     | Description           |
+| -------------------------------------------------- | -------- | --------------------- |
+| [`[SimilarityResult.sim.name]`](#similarityresult) | `number` | Material ID: quantity |
