@@ -84,14 +84,13 @@ const config = [
   },
 ];
 
-config[0].plugins.push(
-  del({
-    targets: 'dist',
-    runOnce: true,
-  }),
-);
-
 if (!ROLLUP_WATCH) {
+  config[0].plugins.push(
+    del({
+      targets: 'dist',
+      runOnce: true,
+    }),
+  );
   config[config.length - 1].plugins.push(
     copy({
       hook: 'buildStart',
