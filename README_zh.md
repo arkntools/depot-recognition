@@ -53,8 +53,8 @@ const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@a
 需要 [comlink-loader](https://www.npmjs.com/package/comlink-loader)
 
 ```js
-import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/es/worker';
-import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/es/tools';
+import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/worker';
+import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/tools';
 import { transfer } from 'comlink';
 
 import order from 'path/to/order.json';
@@ -79,9 +79,9 @@ const initRecognizer = async () => {
 如果在 typescript 中使用 comlink-loader，你需要自行补充模块定义
 
 ```ts
-declare module 'comlink-loader*!@arkntools/depot-recognition/es/worker' {
-  import DepotRecognitionWorker from '@arkntools/depot-recognition/es/comlinkLoader';
-  export * from '@arkntools/depot-recognition/es/comlinkLoader';
+declare module 'comlink-loader*!@arkntools/depot-recognition/worker' {
+  import DepotRecognitionWorker from '@arkntools/depot-recognition/worker/comlinkLoader';
+  export * from '@arkntools/depot-recognition/worker/comlinkLoader';
   export default DepotRecognitionWorker;
 }
 ```
@@ -89,7 +89,7 @@ declare module 'comlink-loader*!@arkntools/depot-recognition/es/worker' {
 然后你就可以正常导入使用了
 
 ```ts
-import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/es/worker';
+import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/worker';
 
 let recognizer: DepotRecognitionWrap | undefined;
 

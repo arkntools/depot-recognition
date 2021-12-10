@@ -25,3 +25,8 @@ jobs:
           token: ${{ secrets.NPM_TOKEN }}
           package: ./dist/package.json
           access: public
+      - name: Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ github.token }}
+          prerelease: false

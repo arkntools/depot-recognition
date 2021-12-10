@@ -53,8 +53,8 @@ const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@a
 Need [comlink-loader](https://www.npmjs.com/package/comlink-loader)
 
 ```js
-import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/es/worker';
-import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/es/tools';
+import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/worker';
+import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/tools';
 import { transfer } from 'comlink';
 
 import order from 'path/to/order.json';
@@ -79,9 +79,9 @@ const initRecognizer = async () => {
 If you are using comlink-loader in typescript, you need to add a declaration:
 
 ```ts
-declare module 'comlink-loader*!@arkntools/depot-recognition/es/worker' {
-  import DepotRecognitionWorker from '@arkntools/depot-recognition/es/comlinkLoader';
-  export * from '@arkntools/depot-recognition/es/comlinkLoader';
+declare module 'comlink-loader*!@arkntools/depot-recognition/worker' {
+  import DepotRecognitionWorker from '@arkntools/depot-recognition/worker/comlinkLoader';
+  export * from '@arkntools/depot-recognition/worker/comlinkLoader';
   export default DepotRecognitionWorker;
 }
 ```
@@ -89,7 +89,7 @@ declare module 'comlink-loader*!@arkntools/depot-recognition/es/worker' {
 Then you can use it as normal:
 
 ```ts
-import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/es/worker';
+import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/worker';
 
 let recognizer: DepotRecognitionWrap | undefined;
 
