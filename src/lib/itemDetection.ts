@@ -40,7 +40,8 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
   edgeImg.scan(removedEdgeWith, 0, width - removedEdgeWith, height, function (x, y, idx) {
     yWhite[y] += this.bitmap.data[idx];
   });
-  const yRanges = getGoodRanges(yWhite.map(v => v / 255 > width * 0.005));
+  const yRangeMinLine = width * 0.005 * 255;
+  const yRanges = getGoodRanges(yWhite.map(v => v > yRangeMinLine));
   let itemWidth = _.min(_.map(yRanges, 'length'))!; // 最小值一般为极限高度，和真正边长最接近
 
   const xWhites: number[][] = yRanges.map(() => new Array(width).fill(0));
@@ -50,17 +51,15 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
   });
   const xRangess = xWhites.map(xWhite =>
     getGoodRanges(
-      xWhite.map(v => v / 255 > 0),
+      xWhite.map(v => v > 0),
       itemWidth,
     ),
   );
+  const xRangeMinLength = 0.05 * itemWidth;
   const xItemWidths = _.map(
     _.flatten(xRangess).filter(
       ({ start, length }) =>
-        start !== 0 &&
-        start + length !== width &&
-        length < itemWidth &&
-        1 - length / itemWidth < 0.05,
+        start !== 0 && start + length !== width && length < itemWidth && length > xRangeMinLength,
     ),
     'length',
   );
