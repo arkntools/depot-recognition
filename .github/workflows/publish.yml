@@ -28,5 +28,5 @@ jobs:
       - name: Release
         uses: marvinpinto/action-automatic-releases@latest
         with:
-          repo_token: ${{ github.token }}
+          repo_token: ${{ secrets.BOT_TOKEN }}
           prerelease: false
