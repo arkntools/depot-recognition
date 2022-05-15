@@ -108,7 +108,7 @@ export const splitNumbers = ({
       .composite(numImg, NUM_IMG_PADDING, 0)
       .convolution(NUM_CONVOLUTION_CORE)
       .invert()
-      .threshold({ max: 2, autoGreyscale: false })
+      .threshold({ max: 32, autoGreyscale: false })
       .invert();
     return newNumImg;
   });
