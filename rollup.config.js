@@ -35,36 +35,51 @@ const getConfig = name => ({
   },
 });
 
-const workerConfig = {
-  input: 'dist/worker/index.js',
-  external,
-  plugins: [
-    localResolvePlugin,
-    externalGlobals({
-      lodash: '_',
-      jimp: 'Jimp',
-      jszip: 'JSZip',
-      'simple-statistics': 'ss',
-      '@arkntools/scripts/dist/ocrad': 'OCRAD',
-    }),
-    copy({
-      copyOnce: true,
-      targets: [
-        {
-          src: ['package.json', 'LICENSE', '*.md'],
-          dest: 'dist',
-        },
-      ],
-    }),
-  ],
-  output: {
-    file: ROLLUP_WATCH ? 'dist/worker.js' : 'dist/worker/index.js',
-    format: 'es',
+const workerConfigPlugins = [
+  localResolvePlugin,
+  externalGlobals({
+    lodash: '_',
+    jimp: 'Jimp',
+    jszip: 'JSZip',
+    'simple-statistics': 'ss',
+    '@arkntools/scripts/dist/ocrad': 'OCRAD',
+  }),
+];
+
+const workerConfigs = [
+  {
+    input: 'dist/worker/index.js',
+    external,
+    plugins: [
+      ...workerConfigPlugins,
+      copy({
+        copyOnce: true,
+        targets: [
+          {
+            src: ['package.json', 'LICENSE', '*.md'],
+            dest: 'dist',
+          },
+        ],
+      }),
+    ],
+    output: {
+      file: ROLLUP_WATCH ? 'dist/worker.js' : 'dist/worker/index.js',
+      format: 'es',
+    },
   },
-};
+  {
+    input: 'dist/lib/index.js',
+    external,
+    plugins: workerConfigPlugins,
+    output: {
+      file: 'dist/worker/index.noImportScripts.js',
+      format: 'es',
+    },
+  },
+];
 
 if (!ROLLUP_WATCH) {
-  workerConfig.plugins.push(
+  workerConfigs[0].plugins.push(
     write({
       targets: [
         {
@@ -80,4 +95,4 @@ if (!ROLLUP_WATCH) {
   );
 }
 
-export default [getConfig('index'), getConfig('tools'), workerConfig];
+export default [getConfig('index'), getConfig('tools'), ...workerConfigs];
