@@ -127,15 +127,15 @@ export class DeportRecognizer {
     // 切图
     nextProgress();
     const {
-      posisions,
+      positions,
       itemWidth,
       debugImgs: itemDetectionDebugImgs,
     } = itemDetection(origImg, this.isDebug);
     if (this.isDebug) debugImgs.push(...itemDetectionDebugImgs);
-    const splitedImgs = posisions.map(({ pos: { x, y } }) =>
+    const splittedImgs = positions.map(({ pos: { x, y } }) =>
       origImg.clone().crop(x, y, itemWidth, itemWidth),
     );
-    const compareImgs = splitedImgs.map(img =>
+    const compareImgs = splittedImgs.map(img =>
       img.clone().resize(IMG_SL, IMG_SL).composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y).circle(),
     );
 
@@ -145,7 +145,7 @@ export class DeportRecognizer {
 
     // 切数字图
     nextProgress();
-    const numImgs = splitNumbers({ splitedImgs, itemWidth, simResults, IMG_SL });
+    const numImgs = splitNumbers({ splittedImgs, itemWidth, simResults, IMG_SL });
 
     // 识别数字
     nextProgress();
@@ -153,7 +153,7 @@ export class DeportRecognizer {
 
     return {
       data: _.merge(
-        posisions,
+        positions,
         simResults.map(sim => ({ sim })),
         numResults.map(num => ({ num })),
       ),

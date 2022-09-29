@@ -6,6 +6,7 @@ const offTsRules = [
   'explicit-function-return-type',
   'no-floating-promises',
   'no-misused-promises',
+  'restrict-plus-operands',
 ];
 
 module.exports = {

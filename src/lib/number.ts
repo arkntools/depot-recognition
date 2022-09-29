@@ -50,12 +50,12 @@ const isColHasBlack = (img: Jimp, x: number): boolean => {
 };
 
 export const splitNumbers = ({
-  splitedImgs,
+  splittedImgs,
   itemWidth,
   simResults,
   IMG_SL,
 }: {
-  splitedImgs: Jimp[];
+  splittedImgs: Jimp[];
   itemWidth: number;
   simResults: Array<RecognizeSimilarityResult | null>;
   IMG_SL: number;
@@ -65,9 +65,9 @@ export const splitNumbers = ({
   const numY = Math.round(NUM_CROP_Y * numRatio);
   const numW = Math.round(NUM_CROP_W * numRatio);
   const numH = Math.round(NUM_CROP_H * numRatio);
-  return splitedImgs.map((splitedImg, i) => {
+  return splittedImgs.map((splittedImg, i) => {
     if (!simResults[i]) return null;
-    const numImg = splitedImg
+    const numImg = splittedImg
       .clone()
       .crop(numX, numY, numW, numH)
       .resize(Jimp.AUTO, NUM_RESIZE_H, Jimp.RESIZE_BEZIER)

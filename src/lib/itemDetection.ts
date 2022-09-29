@@ -140,7 +140,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     };
   });
 
-  const posisions = _.flatMap(_.uniqBy(_.flatten(xPoss), 'pos.x'), xPos =>
+  const positions = _.flatMap(_.uniqBy(_.flatten(xPoss), 'pos.x'), xPos =>
     _.uniqBy(_.flatten(yPoss), 'pos.y').map(yPos =>
       _.merge(
         {
@@ -160,7 +160,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
   if (isDebug) {
     // debug square
     const debugSquareImg = origImg.clone();
-    posisions.forEach(({ pos: { x, y } }) => {
+    positions.forEach(({ pos: { x, y } }) => {
       for (let ix = x; ix < x + trueItemWidth; ix++) {
         debugSquareImg.setPixelColor(0xff0000ff, ix, y);
         debugSquareImg.setPixelColor(0xff0000ff, ix, y + trueItemWidth - 1);
@@ -202,7 +202,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
 
   return {
     debugImgs,
-    posisions,
+    positions,
     itemWidth: Math.round(itemWidth * scale),
   };
 };
