@@ -9,12 +9,13 @@ run(__dirname);`;
 const rp = rpath => resolve(__dirname, rpath);
 
 readdirSync(rp('cases')).forEach(name => {
+  if (name === '.DS_Store') return;
   writeFileSync(rp(`cases/${name}/index.spec.ts`), SPEC_CONTENT);
 });
 
 if (!existsSync(rp('cache'))) mkdirSync(rp('cache'));
 [
-  'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/itemOrder.json',
+  'https://github.com/arkntools/arknights-toolbox/raw/3209a2a03afea450b60f79b0067adfcc51621ad1/src/data/itemOrder.json',
   'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
 ].forEach(async url => {
   const file = rp(`cache/${_.last(url.split('/'))}`);

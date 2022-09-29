@@ -34,12 +34,12 @@ const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@a
 (async () => {
   const [order, pkg] = await Promise.all(
     [
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/itemOrder.json',
+      'https://github.com/arkntools/arknights-toolbox/raw/3209a2a03afea450b60f79b0067adfcc51621ad1/src/data/itemOrder.json',
       'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
     ].map(url => fetch(url).then(r => (url.endsWith('.json') ? r.json() : r.buffer()))),
   );
   const dr = new DeportRecognizer({ order, pkg });
-  const { data } = await dr.recognize('IMAGE_PATH');
+  const { data } = await dr.recognize('https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png');
   console.log(data.filter(isTrustedResult)); // full trust result
   console.log(toSimpleTrustedResult(data)); // simple trust result
 })();
@@ -86,9 +86,9 @@ declare module 'comlink-loader*!@arkntools/depot-recognition/worker' {
 Then you can use it as normal:
 
 ```ts
-import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/worker';
+import DepotRecognitionWorker, { RemoteDeportRecognizer } from 'comlink-loader!@arkntools/depot-recognition/worker';
 
-let recognizer: DepotRecognitionWrap | undefined;
+let recognizer: RemoteDeportRecognizer | undefined;
 
 (async () => {
   const worker = new DepotRecognitionWorker();
@@ -186,6 +186,16 @@ Set debug mode.
 | Name   | Type      | Description                                                        |
 | ------ | --------- | ------------------------------------------------------------------ |
 | enable | `boolean` | Will output some base64 images in recognition result when enabled. |
+
+### `DeportRecognizer.setOrder(order): void`
+
+Set the sorting order of materials.
+
+#### Parameters
+
+| Name  | Type       | Description                                                   |
+| ----- | ---------- | ------------------------------------------------------------- |
+| order | `string[]` | Item IDs, represent the sorting order of materials in deport. |
 
 ### `isTrustedResult(result): boolean`
 

@@ -3,7 +3,7 @@ import Jimp from 'jimp';
 import JSZip, { JSZipLoadOptions } from 'jszip';
 import { itemDetection } from './itemDetection';
 import { splitNumbers, recognizeNumbers, RecognizeNumberResult } from './number';
-import { getSims, CompareItemData, RecognizeSimilarityResult } from './similarity';
+import { getSims, RecognizeSimilarityResult } from './similarity';
 import { jimp2base64 } from '../utils/jimp2base64';
 
 export type ZipData = string | ArrayBuffer | Uint8Array | Buffer | Blob;
@@ -58,10 +58,11 @@ const NUM_MASK_Y = 70;
 export class DeportRecognizer {
   protected config: RecognizerConfig;
   protected isDebug: boolean;
-  protected itemImgs: CompareItemData | undefined;
+  protected itemOrder: string[] | undefined;
+  protected itemImgMap: Map<string, Jimp> | undefined;
 
   constructor(config: RecognizerConfig) {
-    this.config = config;
+    this.config = { ...config };
     this.isDebug = false;
   }
 
@@ -70,37 +71,49 @@ export class DeportRecognizer {
     this.isDebug = enable;
   }
 
+  setOrder(order: string[]) {
+    this.config.order = order;
+    this.itemOrder = undefined;
+  }
+
   protected async loadResource() {
-    if (this.itemImgs) return this.itemImgs;
-    const zip = await JSZip.loadAsync(
-      ...(_.castArray(this.config.pkg) as [ZipData, JSZipLoadOptions]),
-    );
-    const items = await Promise.all(
-      this.config.order.map(async id => {
-        try {
-          const file = zip.file(`${id}.png`);
-          if (!file) {
-            console.warn(`[depot-recognition] ${id}.png not exist in pkg`);
-            return;
-          }
-          // @ts-expect-error
-          return await Jimp.read(await file.async('arraybuffer'));
-        } catch (e) {
-          console.error('[depot-recognition]', e);
-        }
-      }),
-    );
-    this.itemImgs = _.zip(
-      this.config.order,
-      items.map(item =>
-        item
-          ?.crop(IMG_CROP_XY, IMG_CROP_XY, IMG_CROP_SL, IMG_CROP_SL)
-          .resize(IMG_SL, IMG_SL, Jimp.RESIZE_BEZIER)
-          .composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y)
-          .circle(),
-      ),
-    ).filter(([, img]) => img) as CompareItemData;
-    return this.itemImgs;
+    if (!this.itemImgMap) {
+      const zip = await JSZip.loadAsync(
+        ...(_.castArray(this.config.pkg) as [ZipData, JSZipLoadOptions]),
+      );
+      this.itemImgMap = new Map(
+        (
+          await Promise.all(
+            zip
+              .filter(path => path.endsWith('.png'))
+              .map(async file => {
+                try {
+                  const img = await Jimp.read((await file.async('arraybuffer')) as any);
+                  return [
+                    file.name.replace(/\.png$/, ''),
+                    img
+                      .crop(IMG_CROP_XY, IMG_CROP_XY, IMG_CROP_SL, IMG_CROP_SL)
+                      .resize(IMG_SL, IMG_SL, Jimp.RESIZE_BEZIER)
+                      .composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y)
+                      .circle(),
+                  ];
+                } catch (e) {
+                  console.error('[depot-recognition]', e);
+                }
+              }),
+          )
+        ).filter(data => data?.[1]) as Array<[string, Jimp]>,
+      );
+    }
+
+    if (!this.itemOrder) {
+      this.itemOrder = _.intersection(this.config.order, Array.from(this.itemImgMap.keys()));
+    }
+
+    return {
+      imgMap: this.itemImgMap,
+      order: this.itemOrder,
+    };
   }
 
   /**
@@ -122,7 +135,7 @@ export class DeportRecognizer {
     // 加载
     nextProgress();
     // @ts-expect-error
-    const [origImg, itemImgs] = await Promise.all([Jimp.read(file), this.loadResource()]);
+    const [origImg, itemData] = await Promise.all([Jimp.read(file), this.loadResource()]);
 
     // 切图
     nextProgress();
@@ -141,7 +154,7 @@ export class DeportRecognizer {
 
     // 相似度计算
     nextProgress();
-    const simResults = getSims(compareImgs, itemImgs);
+    const simResults = getSims(compareImgs, itemData.imgMap, itemData.order);
 
     // 切数字图
     nextProgress();

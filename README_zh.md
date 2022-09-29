@@ -34,12 +34,12 @@ const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@a
 (async () => {
   const [order, pkg] = await Promise.all(
     [
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/itemOrder.json',
+      'https://github.com/arkntools/arknights-toolbox/raw/3209a2a03afea450b60f79b0067adfcc51621ad1/src/data/itemOrder.json',
       'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
     ].map(url => fetch(url).then(r => (url.endsWith('.json') ? r.json() : r.buffer()))),
   );
   const dr = new DeportRecognizer({ order, pkg });
-  const { data } = await dr.recognize('IMAGE_PATH');
+  const { data } = await dr.recognize('https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png');
   console.log(data.filter(isTrustedResult)); // 详细的置信度高的结果：包含切图坐标、与其它材料比较的相似度等
   console.log(toSimpleTrustedResult(data)); // 简单的置信度高的结果：{ 材料ID: 数量 }
 })();
@@ -86,9 +86,9 @@ declare module 'comlink-loader*!@arkntools/depot-recognition/worker' {
 然后你就可以正常导入使用了
 
 ```ts
-import DepotRecognitionWorker, { DepotRecognitionWrap } from 'comlink-loader!@arkntools/depot-recognition/worker';
+import DepotRecognitionWorker, { RemoteDeportRecognizer } from 'comlink-loader!@arkntools/depot-recognition/worker';
 
-let recognizer: DepotRecognitionWrap | undefined;
+let recognizer: RemoteDeportRecognizer | undefined;
 
 (async () => {
   const worker = new DepotRecognitionWorker();
@@ -186,6 +186,16 @@ new DeportRecognizer(config)
 | Name   | Type      | Description                                  |
 | ------ | --------- | -------------------------------------------- |
 | enable | `boolean` | 设置为调试模式，识别时会额外输出一些过程图片 |
+
+### `DeportRecognizer.setOrder(order): void`
+
+设置材料顺序
+
+#### Parameters
+
+| Name  | Type       | Description                              |
+| ----- | ---------- | ---------------------------------------- |
+| order | `string[]` | 材料 ID 数组，表示材料在仓库中的排序顺序 |
 
 ### `isTrustedResult(result): boolean`
 

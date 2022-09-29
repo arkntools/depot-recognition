@@ -16,11 +16,12 @@ export type CompareItemData = Array<[string, Jimp]>;
 /** 相似度计算 */
 export const getSim = (
   input: Jimp,
-  compares: CompareItemData,
+  imgMap: Map<string, Jimp>,
+  order: string[],
 ): RecognizeSimilarityResult | null => {
-  if (!compares.length) return null;
+  if (!order.length) return null;
   const diffs = _.sortBy(
-    compares.map<[string, number]>(([id, img]) => [id, Jimp.diff(input, img, 0.2).percent]),
+    order.map<[string, number]>(id => [id, Jimp.diff(input, imgMap.get(id)!, 0.2).percent]),
     1,
   );
   const [name, diff] = diffs[0];
@@ -30,30 +31,32 @@ export const getSim = (
 /** 相似度计算（二分法） */
 export const getSims = (
   inputs: Jimp[],
-  compares: CompareItemData,
+  imgMap: Map<string, Jimp>,
+  order: string[],
 ): Array<RecognizeSimilarityResult | null> => {
   if (inputs.length <= 2) {
-    return inputs.map(input => getSim(input, compares));
+    return inputs.map(input => getSim(input, imgMap, order));
   }
   const inputCenterI = Math.floor(inputs.length / 2);
-  const inputCenterSim = getSim(inputs[inputCenterI], compares);
+  const inputCenterSim = getSim(inputs[inputCenterI], imgMap, order);
   if (isTrustedSimResult(inputCenterSim)) {
     // 受信结果
-    const compareCenterI = compares.findIndex(([name]) => name === inputCenterSim.name);
+    const compareCenterI = order.findIndex(name => name === inputCenterSim.name);
     return [
-      ...getSims(inputs.slice(0, inputCenterI), compares.slice(0, compareCenterI)),
+      ...getSims(inputs.slice(0, inputCenterI), imgMap, order.slice(0, compareCenterI)),
       inputCenterSim,
-      ...getSims(inputs.slice(inputCenterI + 1), compares.slice(compareCenterI + 1)),
+      ...getSims(inputs.slice(inputCenterI + 1), imgMap, order.slice(compareCenterI + 1)),
     ];
   } else {
     // 不受信结果
-    const leftSims = getSims(inputs.slice(0, inputCenterI), compares);
+    const leftSims = getSims(inputs.slice(0, inputCenterI), imgMap, order);
     const leftLastSim: RecognizeSimilarityResult | null = _.findLast(leftSims, sim => sim) as any;
     const rightSims = getSims(
       inputs.slice(inputCenterI + 1),
+      imgMap,
       isTrustedSimResult(leftLastSim)
-        ? compares.slice(compares.findIndex(([name]) => name === leftLastSim.name) + 1)
-        : compares,
+        ? order.slice(order.findIndex(name => name === leftLastSim.name) + 1)
+        : order,
     );
     return [...leftSims, inputCenterSim, ...rightSims];
   }
