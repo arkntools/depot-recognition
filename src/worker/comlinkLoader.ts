@@ -1,3 +1,4 @@
+// @ts-expect-error
 import { Remote } from 'comlink';
 import { DeportRecognizer } from '../lib';
 
