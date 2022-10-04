@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import OCRAD from '@arkntools/scripts/dist/ocrad';
 import Jimp from 'jimp';
-import { getRanges, removeRangesNoise, getRangeEnd, Range } from './range';
+import { getRanges, removeRangesNoise, Range } from './range';
 import { RecognizeSimilarityResult } from './similarity';
 import { jimp2base64 } from '../utils/jimp2base64';
 
@@ -20,6 +20,7 @@ const NUM_RESIZE_H = 60;
 const NUM_MIN_WIDTH = 8;
 const NUM_MAX_SPACE = 20;
 const NUM_IMG_PADDING = 10;
+const NUM_APPEND_SPACE = 8;
 
 const NUM_CROP_W = 50;
 const NUM_CROP_H = 22;
@@ -73,6 +74,7 @@ export const splitNumbers = ({
       .resize(Jimp.AUTO, NUM_RESIZE_H, Jimp.RESIZE_BEZIER)
       .invert()
       .threshold({ max: 104 });
+    const numImgH = numImg.getHeight();
     const numImgBlackRanges = getBlackColRanges(numImg, isColHasBlack);
     // 过窄块不要
     removeRangesNoise(numImgBlackRanges, NUM_MIN_WIDTH);
@@ -82,33 +84,38 @@ export const splitNumbers = ({
       // 间距过大不要
       const next = numImgBlackRanges[j + 1];
       if (next && next.start - (start + length) > NUM_MAX_SPACE) return true;
+      // 扫描
+      const yBlack = new Array(numImgH).fill(0);
+      numImg.scan(start, 0, length, numImgH, function (x, y, idx) {
+        yBlack[y] += 255 - this.bitmap.data[idx];
+      });
+      const yRanges = getRanges(yBlack.map(v => v > 0));
       // 上下贴边块不要
-      for (let x = start; x < start + length; x++) {
-        const { r: topPixel } = Jimp.intToRGBA(numImg.getPixelColor(x, 0));
-        const { r: bottomPixel } = Jimp.intToRGBA(numImg.getPixelColor(x, NUM_RESIZE_H - 1));
-        if (topPixel < 128 || bottomPixel < 128) return true;
-      }
+      if (yBlack[0] || _.last(yBlack)) return true;
+      // 过矮块不要
+      if (_.sum(_.map(yRanges, 'length')) < numImgH * 0.5) return true;
       return false;
     });
-    const numImgLeftSide = Math.max(Math.floor(numImgBlackRanges[0]?.start ?? 0), 0);
-    const numImgLastRange = _.last(numImgBlackRanges);
-    const numImgRightSide = Math.min(
-      Math.ceil(numImgLastRange ? getRangeEnd(numImgLastRange) : numImg.getWidth()),
-      numImg.getWidth(),
-    );
-    if (numImgLeftSide > 0 || numImgRightSide < numImg.getWidth()) {
-      numImg.crop(numImgLeftSide, 0, numImgRightSide - numImgLeftSide, numImg.getHeight());
+    if (!numImgBlackRanges.length) {
+      numImgBlackRanges.push({ start: 0, length: numImg.getWidth() });
     }
     const newNumImg = new Jimp(
-      numImg.getWidth() + NUM_IMG_PADDING * 2,
-      numImg.getHeight(),
+      NUM_IMG_PADDING * 2 +
+        _.sum(_.map(numImgBlackRanges, 'length')) +
+        (numImgBlackRanges.length - 1) * NUM_APPEND_SPACE,
+      numImgH,
       'white',
     );
+    let curX = NUM_IMG_PADDING;
+    for (const { start, length } of numImgBlackRanges) {
+      if (curX !== NUM_IMG_PADDING) curX += NUM_APPEND_SPACE;
+      newNumImg.blit(numImg, curX, 0, start, 0, length, numImgH);
+      curX += length;
+    }
     newNumImg
-      .composite(numImg, NUM_IMG_PADDING, 0)
       .convolution(NUM_CONVOLUTION_CORE)
       .invert()
-      .threshold({ max: 32, autoGreyscale: false })
+      .threshold({ max: 16, autoGreyscale: false })
       .invert();
     return newNumImg;
   });

@@ -33,21 +33,21 @@ export const getRanges = (arr: boolean[]): Range[] =>
     [],
   );
 
-export const getGoodRanges = (arr: boolean[], middle?: number): Range[] => {
-  const range = _.sortBy(getRanges(arr), 'length').reverse();
-  if (middle) {
-    const min = middle * 0.9;
-    const max = middle * 1.1;
-    return _.sortBy(
-      range.filter(({ length }) => min < length && length < max),
-      'start',
-    );
-  }
-  const min = range[0].length * 0.8;
-  return _.sortBy(
-    range.filter(({ length }) => length > min),
-    'start',
-  );
+export const getRangesBy: {
+  (arr: boolean[], fn: (range: Range) => boolean): Range[];
+  <T = any>(
+    arr: boolean[],
+    fn: (range: Range, data: T) => boolean,
+    preCalc: (ranges: Range[]) => T,
+  ): Range[];
+} = (
+  arr: boolean[],
+  fn: (range: Range, data: any) => boolean,
+  preCalc?: (ranges: Range[]) => any,
+): Range[] => {
+  const ranges = getRanges(arr);
+  const data = preCalc?.(ranges);
+  return ranges.filter(range => fn(range, data));
 };
 
 export const removeRangesNoise = (ranges: Range[], size = 1): Range[] =>

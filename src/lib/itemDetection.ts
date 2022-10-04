@@ -1,14 +1,21 @@
 import _ from 'lodash';
 import Jimp from 'jimp';
-import { linearRegressionLine, linearRegression, median } from 'simple-statistics';
-import { getGoodRanges, findRangeIndex } from './range';
+import { linearRegressionLine, linearRegression } from 'simple-statistics';
+import { Range, getRangesBy, findRangeIndex } from './range';
+
+interface ItemPosData {
+  x: number;
+  y: number;
+  xRange: Range;
+  yRange: Range;
+}
 
 const ORIG_MAX_WIDTH = 960;
 const ORIG_MAX_HEIGHT = 540;
 
 const ITEM_VIEW_SCALE = 1.15;
 const ITEM_DEBUG_VIEW_W = 60;
-const ITEM_X_SPACE_RATIO = 21 / 75;
+const ITEM_X_SPACE_RATIO = 29 / 88;
 // const ITEM_Y_SPACE_RATIO = 107.5 / 177;
 
 const EDGE_CORE = [
@@ -30,84 +37,91 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     return w / img.getWidth();
   })();
 
-  // 得到比较标准的若干个素材位置
+  // 边缘检测卷积
   const edgeImg = img.clone().greyscale().convolution(EDGE_CORE);
   const width = edgeImg.getWidth();
   const height = edgeImg.getHeight();
 
+  // 获得行的大致范围
   const yWhite: number[] = new Array(height).fill(0);
   const removedEdgeWith = Math.round(width * 0.15); // 去除可能的干扰
   edgeImg.scan(removedEdgeWith, 0, width - removedEdgeWith, height, function (x, y, idx) {
     yWhite[y] += this.bitmap.data[idx];
   });
   const yRangeMinLine = width * 0.005 * 255;
-  const yRanges = getGoodRanges(yWhite.map(v => v > yRangeMinLine));
+  const yRanges = getRangesBy<number>(
+    yWhite.map(v => v > yRangeMinLine),
+    ({ length }, minLen) => length > minLen,
+    ranges => _.maxBy(ranges, 'length')!.length * 0.8,
+  );
   let itemWidth = _.min(_.map(yRanges, 'length'))!; // 最小值一般为极限高度，和真正边长最接近
 
+  // 获得每行中素材的宽度范围
   const xWhites: number[][] = yRanges.map(() => new Array(width).fill(0));
   edgeImg.scan(0, 0, width, height, function (x, y, idx) {
     const yRangeIndex = findRangeIndex(y, yRanges);
     if (yRangeIndex !== -1) xWhites[yRangeIndex][x] += this.bitmap.data[idx];
   });
-  const xRangess = xWhites.map(xWhite =>
-    getGoodRanges(
+  const xsRanges = xWhites.map(xWhite =>
+    getRangesBy(
       xWhite.map(v => v > 0),
-      itemWidth,
+      ({ start, length }) =>
+        start > 0 && start + length < width && itemWidth * 0.9 < length && length < itemWidth * 1.2,
     ),
   );
   const xRangeMinLength = 0.05 * itemWidth;
   const xItemWidths = _.map(
-    _.flatten(xRangess).filter(
+    _.flatten(xsRanges).filter(
       ({ start, length }) =>
         start !== 0 && start + length !== width && length < itemWidth && length > xRangeMinLength,
     ),
     'length',
   );
   if (xItemWidths.length) {
-    itemWidth = _.min(xItemWidths)!; // 更新真正边长
+    itemWidth = _.min(xItemWidths)!; // 更新边长
   }
 
-  // 调整行范围
-  yRanges.forEach(range => {
-    const end = range.start + range.length;
-    range.start = end - itemWidth;
-    range.length = itemWidth;
-  });
-  const yRangeSpacing = _.dropRight(yRanges).map(({ start, length }, i) => {
-    const curEnd = start + length;
-    const nextStart = yRanges[i + 1].start;
-    return nextStart - curEnd;
-  });
-  const yRangeSpacingMedian = median(yRangeSpacing);
-  const yRangeSpacingMedianRound = Math.round(yRangeSpacingMedian);
-  yRangeSpacing.forEach((v, i) => {
-    // 如果行间隔差距太大则调整
-    if (Math.abs(v - yRangeSpacingMedian) / yRangeSpacingMedian < 0.03) return;
-    const range1 = yRanges[i];
-    const range2 = yRanges[i + 1];
-    // 最后一行，直接调整
-    if (i + 1 === yRangeSpacing.length) {
-      range2.start = range1.start + range1.length + yRangeSpacingMedianRound;
-      yRangeSpacing[i] = yRangeSpacingMedianRound;
-      return;
-    }
-    // 否则根据下一行来平均
-    const range3 = yRanges[i + 2];
-    range2.start = Math.round((range1.start + range3.start) / 2);
-    yRangeSpacing[i] = range2.start - (range1.start + range1.length);
-    yRangeSpacing[i + 1] = range3.start - (range2.start + range2.length);
-  });
+  // 获得规范素材的范围
+  const itemsRange = _.flatten(
+    xsRanges.map((xRanges, y) => {
+      const yRange = yRanges[y];
+      return xRanges
+        .map((xRange, x): ItemPosData | null => {
+          const yWhite: number[] = new Array(yRange.length).fill(0);
+          edgeImg.scan(
+            xRange.start,
+            yRange.start,
+            xRange.length,
+            yRange.length,
+            function (x, y, idx) {
+              yWhite[y - yRange.start] += this.bitmap.data[idx];
+            },
+          );
+          const yRangeMinLine = xRange.length * 0.005 * 255;
+          const [resultYRange] = getRangesBy(
+            yWhite.map(v => v > yRangeMinLine),
+            range => itemWidth * 0.9 < range.length && range.length < itemWidth * 1.2,
+          );
+          if (!resultYRange) return null;
+          resultYRange.start += yRange.start;
+          return { x, y, xRange, yRange: resultYRange };
+        })
+        .filter((v): v is ItemPosData => !!v);
+    }),
+  );
+
+  // 更新边长
+  itemWidth =
+    _.min(_.flatMap(itemsRange, ({ xRange, yRange }) => [xRange.length, yRange.length])) ||
+    itemWidth;
 
   // 材位置的线性回归
   const xOccu = itemWidth * (1 + ITEM_X_SPACE_RATIO);
-  const xCents = _.flatten(xRangess).map(({ start, length }) => start + length / 2);
+  const xCents = itemsRange.map(({ xRange: { start, length } }) => start + length / 2);
   const firstXCent = _.min(xCents)!;
   const firstColOffset = Math.ceil(firstXCent / xOccu);
   const xPoints = xCents.map(y => [firstColOffset + Math.round((y - firstXCent) / xOccu), y]);
-  const yPoints = yRanges.map(({ start, length }, x) => {
-    const y = start + length / 2;
-    return [x, y];
-  });
+  const yPoints = itemsRange.map(({ y, yRange: { start, length } }) => [y, start + length / 2]);
 
   const getMidX = linearRegressionLine(linearRegression(xPoints));
   const getMidY = linearRegressionLine(linearRegression(yPoints));
@@ -175,29 +189,26 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     // debug row
     const debugRowImg = edgeImg.clone();
     yRanges.forEach(({ start, length }) => {
-      for (let ix = 0; ix < width; ix++) {
-        for (let iy = start; iy < start + length; iy++) {
-          const idx = debugRowImg.getPixelIndex(ix, iy);
-          debugRowImg.bitmap.data[idx] = 200;
-        }
-      }
+      debugRowImg.scan(0, start, width, length, function (x, y, idx) {
+        debugRowImg.bitmap.data[idx] = 200;
+      });
     });
     debugImgs.push(debugRowImg);
 
-    // debug col
-    const debugColImg = edgeImg.clone();
-    xRangess.forEach((xRanges, irow) => {
-      const row = yRanges[irow];
-      xRanges.forEach(({ start, length }) => {
-        for (let ix = start; ix < start + length; ix++) {
-          for (let iy = row.start; iy < row.start + row.length; iy++) {
-            const idx = debugColImg.getPixelIndex(ix, iy);
-            debugColImg.bitmap.data[idx] = 200;
-          }
-        }
-      });
+    // debug item
+    const debugItemImg = edgeImg.clone();
+    itemsRange.forEach(({ xRange, yRange }) => {
+      debugRowImg.scan(
+        xRange.start,
+        yRange.start,
+        xRange.length,
+        yRange.length,
+        function (x, y, idx) {
+          debugItemImg.bitmap.data[idx] = 200;
+        },
+      );
     });
-    debugImgs.push(debugColImg);
+    debugImgs.push(debugItemImg);
   }
 
   return {

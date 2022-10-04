@@ -1,6 +1,6 @@
 {
   "name": "@arkntools/depot-recognition",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "main": "dist/index.js",
   "module": "index.js",
   "author": "神代綺凛 <i@loli.best>",
@@ -8,7 +8,7 @@
   "scripts": {
     "test": "node ./test && jest",
     "build": "rimraf dist && tsc && rollup -c",
-    "watch": "rimraf dist && tsc-watch --onFirstSuccess \"rollup -cw\""
+    "watch": "tsc-watch --onFirstSuccess \"rollup -cw\""
   },
   "dependencies": {
     "@arkntools/scripts": "^1.1.1",
