@@ -4,7 +4,6 @@ import { linearRegressionLine, linearRegression } from 'simple-statistics';
 import { Range, getRangesBy, findRangeIndex } from './range';
 
 interface ItemPosData {
-  x: number;
   y: number;
   xRange: Range;
   yRange: Range;
@@ -86,7 +85,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     xsRanges.map((xRanges, y) => {
       const yRange = yRanges[y];
       return xRanges
-        .map((xRange, x): ItemPosData | null => {
+        .map((xRange): ItemPosData | null => {
           const yWhite: number[] = new Array(yRange.length).fill(0);
           edgeImg.scan(
             xRange.start,
@@ -104,7 +103,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
           );
           if (!resultYRange) return null;
           resultYRange.start += yRange.start;
-          return { x, y, xRange, yRange: resultYRange };
+          return { y, xRange, yRange: resultYRange };
         })
         .filter((v): v is ItemPosData => !!v);
     }),
