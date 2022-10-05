@@ -115,7 +115,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     _.min(_.flatMap(itemsRange, ({ xRange, yRange }) => [xRange.length, yRange.length])) ||
     itemWidth;
 
-  // 材位置的线性回归
+  // 材料位置的线性回归
   const xOccu = itemWidth * (1 + ITEM_X_SPACE_RATIO);
   const xCents = itemsRange.map(({ xRange: { start, length } }) => start + length / 2);
   const firstXCent = _.min(xCents)!;
