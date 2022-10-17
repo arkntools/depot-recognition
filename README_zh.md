@@ -28,18 +28,29 @@ yarn add @arkntools/depot-recognition
 ### Node
 
 ```js
+const { sortBy } = require('lodash');
 const fetch = require('node-fetch').default;
-const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@arkntools/depot-recognition');
+const {
+  DeportRecognizer,
+  isTrustedResult,
+  toSimpleTrustedResult,
+} = require('@arkntools/depot-recognition');
 
 (async () => {
-  const [order, pkg] = await Promise.all(
+  const [item, pkg] = await Promise.all(
     [
-      'https://github.com/arkntools/arknights-toolbox/raw/3209a2a03afea450b60f79b0067adfcc51621ad1/src/data/itemOrder.json',
+      'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/item.json',
       'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
-    ].map(url => fetch(url).then(r => (url.endsWith('.json') ? r.json() : r.buffer()))),
+    ].map((url) =>
+      fetch(url).then((r) => (url.endsWith('.json') ? r.json() : r.buffer()))
+    )
   );
+  const getSortId = (id) => item[id].sortId.us; // cn us jp kr
+  const order = sortBy(Object.keys(item).filter(getSortId), getSortId);
   const dr = new DeportRecognizer({ order, pkg });
-  const { data } = await dr.recognize('https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png');
+  const { data } = await dr.recognize(
+    'https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png'
+  );
   console.log(data.filter(isTrustedResult)); // 详细的置信度高的结果：包含切图坐标、与其它材料比较的相似度等
   console.log(toSimpleTrustedResult(data)); // 简单的置信度高的结果：{ 材料ID: 数量 }
 })();
@@ -112,10 +123,11 @@ new DeportRecognizer(config)
 
 ##### `RecognizerConfig`
 
-| Name  | Type       | Description                                                                                                                               |
-| ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| order | `string[]` | 材料 ID 数组，表示材料在仓库中的排序顺序                                                                                                  |
-| pkg   | `any`      | 材料图片的压缩包，是 [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html) 可接受的一个参数或参数的数组 |
+| Name    | Type       | Description                                                                                                                               |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| order   | `string[]` | 材料 ID 数组，表示材料在仓库中的排序顺序                                                                                                  |
+| pkg     | `any`      | 材料图片的压缩包，是 [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html) 可接受的一个参数或参数的数组 |
+| preload | `boolean`  | 从 `pkg` 预加载资源                                                                                                                       |
 
 ### `DeportRecognizer.recognize(file, onProgress): Object`
 
@@ -196,6 +208,10 @@ new DeportRecognizer(config)
 | Name  | Type       | Description                              |
 | ----- | ---------- | ---------------------------------------- |
 | order | `string[]` | 材料 ID 数组，表示材料在仓库中的排序顺序 |
+
+### `DeportRecognizer.preloadResource(): void`
+
+从 [`RecognizerConfig.pkg`](#recognizerconfig) 预加载资源
 
 ### `isTrustedResult(result): boolean`
 

@@ -16,6 +16,8 @@ export interface RecognizerConfig {
    * @see https://stuk.github.io/jszip/documentation/api_jszip/load_async.html
    */
   pkg: ZipData | [ZipData, JSZipLoadOptions | undefined];
+  /** Preload resource from `pkg` */
+  preload?: boolean;
 }
 
 export interface RecognizeResult {
@@ -60,10 +62,12 @@ export class DeportRecognizer {
   protected isDebug: boolean;
   protected itemOrder: string[] | undefined;
   protected itemImgMap: Map<string, Jimp> | undefined;
+  protected preloadResourcePromise: Promise<void> | undefined;
 
   constructor(config: RecognizerConfig) {
     this.config = { ...config };
     this.isDebug = false;
+    if (config.preload) this.preloadResource();
   }
 
   /** Some process images will be output in debug mode. */
@@ -74,6 +78,18 @@ export class DeportRecognizer {
   setOrder(order: string[]) {
     this.config.order = order;
     this.itemOrder = undefined;
+  }
+
+  preloadResource() {
+    this.preloadResourcePromise = (async () => {
+      try {
+        await this.loadResource();
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.preloadResourcePromise = undefined;
+      }
+    })();
   }
 
   protected async loadResource() {
@@ -134,8 +150,8 @@ export class DeportRecognizer {
 
     // 加载
     nextProgress();
-    // @ts-expect-error
-    const [origImg, itemData] = await Promise.all([Jimp.read(file), this.loadResource()]);
+    if (this.preloadResourcePromise) await this.preloadResourcePromise;
+    const [origImg, itemData] = await Promise.all([Jimp.read(file as any), this.loadResource()]);
 
     // 切图
     nextProgress();

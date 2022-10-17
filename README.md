@@ -28,21 +28,33 @@ You need to provide [a zip of material images](https://github.com/arkntools/arkn
 ### Node
 
 ```js
+const { sortBy } = require('lodash');
 const fetch = require('node-fetch').default;
-const { DeportRecognizer, isTrustedResult, toSimpleTrustedResult } = require('@arkntools/depot-recognition');
+const {
+  DeportRecognizer,
+  isTrustedResult,
+  toSimpleTrustedResult,
+} = require('@arkntools/depot-recognition');
 
 (async () => {
-  const [order, pkg] = await Promise.all(
+  const [item, pkg] = await Promise.all(
     [
-      'https://github.com/arkntools/arknights-toolbox/raw/3209a2a03afea450b60f79b0067adfcc51621ad1/src/data/itemOrder.json',
+      'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/item.json',
       'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
-    ].map(url => fetch(url).then(r => (url.endsWith('.json') ? r.json() : r.buffer()))),
+    ].map((url) =>
+      fetch(url).then((r) => (url.endsWith('.json') ? r.json() : r.buffer()))
+    )
   );
+  const getSortId = (id) => item[id].sortId.us; // cn us jp kr
+  const order = sortBy(Object.keys(item).filter(getSortId), getSortId);
   const dr = new DeportRecognizer({ order, pkg });
-  const { data } = await dr.recognize('https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png');
+  const { data } = await dr.recognize(
+    'https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png'
+  );
   console.log(data.filter(isTrustedResult)); // full trust result
   console.log(toSimpleTrustedResult(data)); // simple trust result
 })();
+
 ```
 
 ### Web worker
@@ -112,10 +124,11 @@ new DeportRecognizer(config)
 
 ##### `RecognizerConfig`
 
-| Name  | Type       | Description                                                                                                                                                                   |
-| ----- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| order | `string[]` | Item IDs, represent the sorting order of materials in deport.                                                                                                                 |
-| pkg   | `any`      | A zip of material images, which is a parameter or an array of parameters accepted by [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html). |
+| Name    | Type       | Description                                                                                                                                                                   |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| order   | `string[]` | Item IDs, represent the sorting order of materials in deport.                                                                                                                 |
+| pkg     | `any`      | A zip of material images, which is a parameter or an array of parameters accepted by [JSZip.loadAsync](https://stuk.github.io/jszip/documentation/api_jszip/load_async.html). |
+| preload | `boolean`  | Preload resource from `pkg`.                                                                                                                                                  |
 
 ### `DeportRecognizer.recognize(file, onProgress): Object`
 
@@ -196,6 +209,10 @@ Set the sorting order of materials.
 | Name  | Type       | Description                                                   |
 | ----- | ---------- | ------------------------------------------------------------- |
 | order | `string[]` | Item IDs, represent the sorting order of materials in deport. |
+
+### `DeportRecognizer.preloadResource(): void`
+
+Preload resource from [`RecognizerConfig.pkg`](#recognizerconfig).
 
 ### `isTrustedResult(result): boolean`
 
