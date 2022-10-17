@@ -81,6 +81,7 @@ export class DeportRecognizer {
   }
 
   preloadResource() {
+    if (this.preloadResourcePromise) return;
     this.preloadResourcePromise = (async () => {
       try {
         await this.loadResource();
