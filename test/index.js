@@ -9,7 +9,7 @@ run(__dirname);`;
 const rp = rpath => resolve(__dirname, rpath);
 
 readdirSync(rp('cases')).forEach(name => {
-  if (name === '.DS_Store') return;
+  if (name.startsWith('.')) return;
   writeFileSync(rp(`cases/${name}/index.spec.ts`), SPEC_CONTENT);
 });
 
