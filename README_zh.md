@@ -21,33 +21,43 @@ yarn add @arkntools/depot-recognition
 
 ## 使用
 
-初始化需要提供 [材料图片的压缩包](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.pkg) 和 [材料在仓库中的排序顺序](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json)，材料的命名必须为材料ID
+初始化需要提供**材料图片的压缩包**和**材料在仓库中的排序顺序**，材料的命名必须为材料 ID
 
-对 [材料图片](https://github.com/arkntools/arknights-toolbox/tree/master/public/assets/img/item) 有一定要求，目前以 [PRTS 使用的材料图片](http://prts.wiki/w/%E9%81%93%E5%85%B7%E4%B8%80%E8%A7%88) 为准
+对材料图片有一定要求，需要解包图，允许适当缩放或压缩，可以直接使用下方例子给出的资源或自行从 [yuanyan3060/Arknights-Bot-Resource](https://github.com/yuanyan3060/Arknights-Bot-Resource) 等解包资源库获取
+
+[例子](https://github.com/arkntools/depot-recognition/wiki/Resource-Example)
 
 ### Node
 
 ```js
+const axios = require('axios').default;
 const { sortBy } = require('lodash');
-const fetch = require('node-fetch').default;
 const {
   DeportRecognizer,
   isTrustedResult,
   toSimpleTrustedResult,
 } = require('@arkntools/depot-recognition');
 
-(async () => {
-  const [item, pkg] = await Promise.all(
-    [
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/item.json',
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
-    ].map((url) =>
-      fetch(url).then((r) => (url.endsWith('.json') ? r.json() : r.buffer()))
-    )
-  );
-  const getSortId = (id) => item[id].sortId.us; // cn us jp kr
+// 你可以自行实现缓存逻辑
+const getResources = async () => {
+  const {
+    data: { mapMd5 },
+  } = await axios.get('https://data-cf.arkntools.app/check.json');
+  const { data: fileMap } = await axios.get(`https://data-cf.arkntools.app/map.${mapMd5}.json`);
+
+  const { data: item } = await axios.get(`https://data-cf.arkntools.app/data/item.${fileMap['data/item.json']}.json`);
+  const { data: pkg } = await axios.get(`https://data-cf.arkntools.app/pkg/item.${fileMap['pkg/item.zip']}.zip`, {
+    responseType: 'arraybuffer',
+  });
+
+  const getSortId = id => item[id].sortId.cn; // cn us jp kr
   const order = sortBy(Object.keys(item).filter(getSortId), getSortId);
-  const dr = new DeportRecognizer({ order, pkg });
+
+  return { order, pkg };
+};
+
+(async () => {
+ const dr = new DeportRecognizer(await getResources());
   const { data } = await dr.recognize(
     'https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png'
   );
@@ -64,19 +74,37 @@ const {
 import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/worker';
 import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/tools';
 import { transfer } from 'comlink';
+import { sortBy } from 'lodash';
 
-import order from 'path/to/order.json';
-import pkgURL from 'file-loader!path/to/pkg.zip';
+// 你可以自行实现缓存逻辑
+const getResources = async () => {
+  const fetchJSON = url => fetch(url).then(r => r.json());
+
+  const { mapMd5 } = await fetchJSON('https://data-cf.arkntools.app/check.json');
+  const fileMap = await fetchJSON(`https://data-cf.arkntools.app/map.${mapMd5}.json`);
+
+  const item = await fetchJSON(`https://data-cf.arkntools.app/data/item.${fileMap['data/item.json']}.json`);
+  const pkg = await fetch(`https://data-cf.arkntools.app/pkg/item.${fileMap['pkg/item.zip']}.zip`).then(r =>
+    r.arrayBuffer()
+  );
+
+  const getSortId = id => item[id].sortId.cn; // cn us jp kr
+  const order = sortBy(Object.keys(item).filter(getSortId), getSortId);
+
+  return { order, pkg };
+};
 
 const initRecognizer = async () => {
-  const pkg = await fetch(pkgURL).then(r => r.arrayBuffer());
+  const { order, pkg } = await getResources();
   const worker = new DepotRecognitionWorker();
   return await new worker.DeportRecognizer(transfer({ order, pkg }, [pkg]));
 };
 
 (async () => {
   const dr = await initRecognizer();
-  const { data } = await dr.recognize('IMG_URL'); // 可以是 Blob URL
+  const { data } = await dr.recognize(
+    'https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png' // 可以是 Blob URL
+  );
   console.log(data.filter(isTrustedResult)); // 详细的置信度高的结果：包含切图坐标、与其它材料比较的相似度等
   console.log(toSimpleTrustedResult(data)); // 简单的置信度高的结果：{ 材料ID: 数量 }
 })();
@@ -84,7 +112,7 @@ const initRecognizer = async () => {
 
 #### Typescript
 
-如果在 typescript 中使用 comlink-loader，你需要自行补充模块定义
+如果在 Typescript 中使用 comlink-loader，你需要自行补充模块定义
 
 ```ts
 declare module 'comlink-loader*!@arkntools/depot-recognition/worker' {

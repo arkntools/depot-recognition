@@ -23,38 +23,47 @@ yarn add @arkntools/depot-recognition
 
 ## Usage
 
-You need to provide [a zip of material images](https://github.com/arkntools/arknights-toolbox/blob/master/src/assets/pkg/item.pkg) and [sorting order of materials in deport](https://github.com/arkntools/arknights-toolbox/blob/master/src/data/itemOrder.json). The name of the material must be material ID.
+You need to provide **a zip of material images** and **sorting order of materials in deport**. The name of the material must be material ID.
+
+[Example](https://github.com/arkntools/depot-recognition/wiki/Resource-Example)
 
 ### Node
 
 ```js
+const axios = require('axios').default;
 const { sortBy } = require('lodash');
-const fetch = require('node-fetch').default;
 const {
   DeportRecognizer,
   isTrustedResult,
   toSimpleTrustedResult,
 } = require('@arkntools/depot-recognition');
 
-(async () => {
-  const [item, pkg] = await Promise.all(
-    [
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/data/item.json',
-      'https://github.com/arkntools/arknights-toolbox/raw/master/src/assets/pkg/item.pkg',
-    ].map((url) =>
-      fetch(url).then((r) => (url.endsWith('.json') ? r.json() : r.buffer()))
-    )
-  );
-  const getSortId = (id) => item[id].sortId.us; // cn us jp kr
+// You can implement your own caching logic
+const getResources = async () => {
+  const {
+    data: { mapMd5 },
+  } = await axios.get('https://data-cf.arkntools.app/check.json');
+  const { data: fileMap } = await axios.get(`https://data-cf.arkntools.app/map.${mapMd5}.json`);
+
+  const { data: item } = await axios.get(`https://data-cf.arkntools.app/data/item.${fileMap['data/item.json']}.json`);
+  const { data: pkg } = await axios.get(`https://data-cf.arkntools.app/pkg/item.${fileMap['pkg/item.zip']}.zip`, {
+    responseType: 'arraybuffer',
+  });
+
+  const getSortId = id => item[id].sortId.cn; // cn us jp kr
   const order = sortBy(Object.keys(item).filter(getSortId), getSortId);
-  const dr = new DeportRecognizer({ order, pkg });
+
+  return { order, pkg };
+};
+
+(async () => {
+  const dr = new DeportRecognizer(await getResources());
   const { data } = await dr.recognize(
     'https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png'
   );
   console.log(data.filter(isTrustedResult)); // full trust result
   console.log(toSimpleTrustedResult(data)); // simple trust result
 })();
-
 ```
 
 ### Web worker
@@ -65,19 +74,37 @@ Need [comlink-loader](https://www.npmjs.com/package/comlink-loader)
 import DepotRecognitionWorker from 'comlink-loader!@arkntools/depot-recognition/worker';
 import { isTrustedResult, toSimpleTrustedResult } from '@arkntools/depot-recognition/tools';
 import { transfer } from 'comlink';
+import { sortBy } from 'lodash';
 
-import order from 'path/to/order.json';
-import pkgURL from 'file-loader!path/to/pkg.zip';
+// You can implement your own caching logic
+const getResources = async () => {
+  const fetchJSON = url => fetch(url).then(r => r.json());
+
+  const { mapMd5 } = await fetchJSON('https://data-cf.arkntools.app/check.json');
+  const fileMap = await fetchJSON(`https://data-cf.arkntools.app/map.${mapMd5}.json`);
+
+  const item = await fetchJSON(`https://data-cf.arkntools.app/data/item.${fileMap['data/item.json']}.json`);
+  const pkg = await fetch(`https://data-cf.arkntools.app/pkg/item.${fileMap['pkg/item.zip']}.zip`).then(r =>
+    r.arrayBuffer()
+  );
+
+  const getSortId = id => item[id].sortId.cn; // cn us jp kr
+  const order = sortBy(Object.keys(item).filter(getSortId), getSortId);
+
+  return { order, pkg };
+};
 
 const initRecognizer = async () => {
-  const pkg = await fetch(pkgURL).then(r => r.arrayBuffer());
+  const { order, pkg } = await getResources();
   const worker = new DepotRecognitionWorker();
   return await new worker.DeportRecognizer(transfer({ order, pkg }, [pkg]));
 };
 
 (async () => {
   const dr = await initRecognizer();
-  const { data } = await dr.recognize('IMG_URL'); // can be blob url
+  const { data } = await dr.recognize(
+    'https://github.com/arkntools/depot-recognition/raw/main/test/cases/cn_iphone12_0/image.png' // can be blob url
+  );
   console.log(data.filter(isTrustedResult)); // full trust result
   console.log(toSimpleTrustedResult(data)); // simple trust result
 })();
@@ -85,7 +112,7 @@ const initRecognizer = async () => {
 
 #### Typescript
 
-If you are using comlink-loader in typescript, you need to add a declaration:
+If you are using comlink-loader in Typescript, you need to add a declaration:
 
 ```ts
 declare module 'comlink-loader*!@arkntools/depot-recognition/worker' {
