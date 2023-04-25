@@ -1376,6 +1376,13 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@tsuk1ko/postversion@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@tsuk1ko/postversion/-/postversion-1.0.2.tgz#69b29969b96e2c24cf0081366818ef4d23cc22a5"
+  integrity sha512-8SHVF8AA0iZhlmzv3QZ+1I5luKelVc7J6WAJbkRZJ638+zmxTadyNSVIiu4LxRfb6823MDHUra9HjVNw+Pigmg==
+  dependencies:
+    yesno "^0.4.0"
+
 "@types/babel__core@^7.1.14":
   version "7.1.16"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.16.tgz#bc12c74b7d65e82d29876b5d0baf5c625ac58702"

@@ -9,7 +9,7 @@
     "test": "node ./test && jest",
     "build": "rimraf dist && tsc && rollup -c",
     "watch": "tsc-watch --onFirstSuccess \"rollup -cw\"",
-    "postversion": "node ./scripts/confirmVersion.js"
+    "postversion": "tpv"
   },
   "dependencies": {
     "@arkntools/scripts": "^1.1.1",
@@ -22,6 +22,7 @@
     "@babel/core": "^7.19.3",
     "@babel/plugin-transform-modules-commonjs": "^7.18.6",
     "@rollup/plugin-babel": "^5.3.1",
+    "@tsuk1ko/postversion": "^1.0.2",
     "@types/jest": "^29.1.0",
     "@types/lodash": "^4.14.186",
     "@types/node-fetch": "^2.6.2",
@@ -42,7 +43,6 @@
     "rollup-plugin-local-resolve": "^1.0.7",
     "ts-jest": "^29.0.2",
     "tsc-watch": "^5.0.3",
-    "typescript": "^4.8.4",
-    "yesno": "^0.4.0"
+    "typescript": "^4.8.4"
   }
 }
