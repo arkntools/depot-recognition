@@ -23,9 +23,9 @@ yarn add @arkntools/depot-recognition
 
 初始化需要提供**材料图片的压缩包**和**材料在仓库中的排序顺序**，材料的命名必须为材料 ID
 
-对材料图片有一定要求，需要解包图，允许适当缩放或压缩，可以直接使用下方例子给出的资源或自行从 [yuanyan3060/Arknights-Bot-Resource](https://github.com/yuanyan3060/Arknights-Bot-Resource) 等解包资源库获取
+对材料图片有一定要求，需要解包图，允许适当缩放或压缩，可以直接使用下方代码示例给出的资源或自行从 [yuanyan3060/Arknights-Bot-Resource](https://github.com/yuanyan3060/Arknights-Bot-Resource) 等解包资源库获取
 
-[例子](https://github.com/arkntools/depot-recognition/wiki/Resource-Example)
+[资源形式示例](https://github.com/arkntools/depot-recognition/wiki/Resource-Example)
 
 ### Node
 

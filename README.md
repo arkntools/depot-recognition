@@ -25,7 +25,7 @@ yarn add @arkntools/depot-recognition
 
 You need to provide **a zip of material images** and **sorting order of materials in deport**. The name of the material must be material ID.
 
-[Example](https://github.com/arkntools/depot-recognition/wiki/Resource-Example)
+[Resource Example](https://github.com/arkntools/depot-recognition/wiki/Resource-Example)
 
 ### Node
 
