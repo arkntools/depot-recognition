@@ -1,10 +1,13 @@
 import _ from 'lodash';
 import Jimp from 'jimp';
-import JSZip, { JSZipLoadOptions } from 'jszip';
-import { itemDetection } from './itemDetection';
-import { splitNumbers, recognizeNumbers, RecognizeNumberResult } from './number';
-import { getSims, RecognizeSimilarityResult } from './similarity';
+import type { JSZipLoadOptions } from 'jszip';
+import JSZip from 'jszip';
 import { jimp2base64 } from '../utils/jimp2base64';
+import { itemDetection } from './itemDetection';
+import type { RecognizeNumberResult } from './number';
+import { splitNumbers, recognizeNumbers } from './number';
+import type { RecognizeSimilarityResult } from './similarity';
+import { getSims } from './similarity';
 
 export type ZipData = string | ArrayBuffer | Uint8Array | Buffer | Blob;
 

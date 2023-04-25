@@ -1,5 +1,5 @@
-import { RecognizeResult } from '..';
-import { RecognizeSimilarityResult } from '../lib/similarity';
+import type { RecognizeResult } from '..';
+import type { RecognizeSimilarityResult } from '../lib/similarity';
 
 export type RecognizeResultTrusted = Required<RecognizeResult>;
 

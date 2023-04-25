@@ -7,6 +7,9 @@ const offTsRules = [
   'no-floating-promises',
   'no-misused-promises',
   'restrict-plus-operands',
+  'no-explicit-any',
+  'no-empty-function',
+  'no-confusing-void-expression',
 ];
 
 module.exports = {
@@ -16,14 +19,31 @@ module.exports = {
     browser: true,
   },
   parser: '@typescript-eslint/parser',
-  extends: ['standard-ts', 'prettier'],
+  extends: [
+    'standard-with-typescript',
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+    'prettier',
+  ],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    // project: './tsconfig.eslint.json',
+    project: './tsconfig.json',
     createDefaultProgram: true,
   },
-  rules: Object.fromEntries(offTsRules.map(name => [`@typescript-eslint/${name}`, 'off'])),
+  settings: {
+    'import/resolver': {
+      typescript: true,
+      node: true,
+    },
+  },
+  rules: {
+    ...Object.fromEntries(offTsRules.map(name => [`@typescript-eslint/${name}`, 'off'])),
+    '@typescript-eslint/consistent-type-imports': ['warn', { disallowTypeAnnotations: false }],
+    'import/order': 'warn',
+  },
   overrides: [
     {
       files: ['**/*.spec.ts', '**/*.jm.ts'],

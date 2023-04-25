@@ -2,5 +2,5 @@ export {
   MAX_SHOW_DIFF,
   isTrustedResult,
   toSimpleTrustedResult,
-  RecognizeResultTrusted,
+  type RecognizeResultTrusted,
 } from './utils/trustedResult';

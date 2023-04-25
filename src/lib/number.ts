@@ -1,9 +1,10 @@
 import _ from 'lodash';
 import OCRAD from '@arkntools/scripts/dist/ocrad';
 import Jimp from 'jimp';
-import { getRanges, removeRangesNoise, Range } from './range';
-import { RecognizeSimilarityResult } from './similarity';
 import { jimp2base64 } from '../utils/jimp2base64';
+import type { Range } from './range';
+import { getRanges, removeRangesNoise } from './range';
+import type { RecognizeSimilarityResult } from './similarity';
 
 export interface RecognizeNumberResult {
   /** Processed digital picture in base64 */

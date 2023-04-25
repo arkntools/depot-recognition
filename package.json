@@ -7,42 +7,59 @@
   "license": "MIT",
   "scripts": {
     "test": "node ./test && jest",
-    "build": "rimraf dist && tsc && rollup -c",
+    "test:clean": "rimraf -g ./test/cache ./test/**/index.spec.ts",
+    "build": "rimraf dist && tsc && rollup -c --bundleConfigAsCjs",
     "watch": "tsc-watch --onFirstSuccess \"rollup -cw\"",
+    "lint:fix": "eslint . --ext .ts --fix",
     "postversion": "tpv"
   },
   "dependencies": {
     "@arkntools/scripts": "^1.1.1",
-    "jimp": "^0.16.1",
+    "jimp": "^0.16.13",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
-    "simple-statistics": "^7.7.6"
+    "simple-statistics": "^7.8.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.3",
-    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
-    "@rollup/plugin-babel": "^5.3.1",
+    "@babel/core": "^7.21.4",
+    "@babel/plugin-transform-modules-commonjs": "^7.21.2",
+    "@rollup/plugin-babel": "^6.0.3",
     "@tsuk1ko/postversion": "^1.0.2",
-    "@types/jest": "^29.1.0",
-    "@types/lodash": "^4.14.186",
-    "@types/node-fetch": "^2.6.2",
-    "@typescript-eslint/eslint-plugin": "^5.38.1",
-    "@typescript-eslint/parser": "^5.38.1",
-    "eslint": "^8.24.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-config-standard-ts": "^21.0.0",
-    "eslint-plugin-jest": "^27.0.4",
-    "jest": "^29.1.1",
-    "node-fetch": "^2.6.7",
-    "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.79.1",
+    "@types/jest": "^29.5.1",
+    "@types/lodash": "^4.14.194",
+    "@types/node-fetch": "^2.6.3",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard-with-typescript": "^34.0.1",
+    "eslint-import-resolver-typescript": "^3.5.5",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jest": "^27.2.1",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.5.0",
+    "lint-staged": "^13.2.1",
+    "node-fetch": "^2.6.9",
+    "prettier": "^2.8.8",
+    "rimraf": "^5.0.0",
+    "rollup": "^3.21.0",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-delete": "^2.0.0",
-    "rollup-plugin-external-globals": "^0.6.1",
+    "rollup-plugin-external-globals": "^0.7.3",
     "rollup-plugin-local-resolve": "^1.0.7",
-    "ts-jest": "^29.0.2",
-    "tsc-watch": "^5.0.3",
-    "typescript": "^4.8.4"
+    "ts-jest": "^29.1.0",
+    "tsc-watch": "^6.0.0",
+    "typescript": "^5.0.4",
+    "yorkie": "^2.0.0"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }

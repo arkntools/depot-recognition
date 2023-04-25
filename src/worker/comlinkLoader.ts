@@ -1,6 +1,6 @@
-// @ts-expect-error
-import { Remote } from 'comlink';
-import { DeportRecognizer } from '../lib';
+// @ts-expect-error dependency conflict
+import type { Remote } from 'comlink';
+import type { DeportRecognizer } from '../lib';
 
 export type RemoteDeportRecognizer = Remote<DeportRecognizer>;
 export type DepotRecognitionWrap = RemoteDeportRecognizer;

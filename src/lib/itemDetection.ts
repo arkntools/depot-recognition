@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import Jimp from 'jimp';
 import { linearRegressionLine, linearRegression } from 'simple-statistics';
-import { Range, getRangesBy, findRangeIndex } from './range';
+import type { Range } from './range';
+import { getRangesBy, findRangeIndex } from './range';
 
 interface ItemPosData {
   y: number;
