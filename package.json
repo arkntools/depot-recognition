@@ -1,6 +1,6 @@
 {
   "name": "@arkntools/depot-recognition",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "main": "dist/index.js",
   "module": "index.js",
   "author": "神代綺凛 <i@loli.best>",
