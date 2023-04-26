@@ -2,6 +2,7 @@ import _ from 'lodash';
 import OCRAD from '@arkntools/scripts/dist/ocrad';
 import Jimp from 'jimp';
 import { jimp2base64 } from '../utils/jimp2base64';
+import ImageData from '../utils/ImageData';
 import type { Range } from './range';
 import { getRanges, removeRangesNoise } from './range';
 import type { RecognizeSimilarityResult } from './similarity';

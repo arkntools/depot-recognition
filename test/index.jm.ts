@@ -2,16 +2,6 @@ import { readdirSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { DeportRecognizer, toSimpleTrustedResult } from '../src';
 
-Object.defineProperty(global, 'ImageData', {
-  value: class ImageData {
-    constructor(
-      public readonly data: Uint8ClampedArray,
-      public readonly width: number,
-      public readonly height: number,
-    ) {}
-  },
-});
-
 beforeAll(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
