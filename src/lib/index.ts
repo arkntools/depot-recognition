@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { castArray, intersection, merge } from 'lodash';
 import Jimp from 'jimp';
 import type { JSZipLoadOptions } from 'jszip';
 import JSZip from 'jszip';
@@ -99,7 +99,7 @@ export class DeportRecognizer {
   protected async loadResource() {
     if (!this.itemImgMap) {
       const zip = await JSZip.loadAsync(
-        ...(_.castArray(this.config.pkg) as [ZipData, JSZipLoadOptions]),
+        ...(castArray(this.config.pkg) as [ZipData, JSZipLoadOptions]),
       );
       this.itemImgMap = new Map(
         (
@@ -127,7 +127,7 @@ export class DeportRecognizer {
     }
 
     if (!this.itemOrder) {
-      this.itemOrder = _.intersection(this.config.order, Array.from(this.itemImgMap.keys()));
+      this.itemOrder = intersection(this.config.order, Array.from(this.itemImgMap.keys()));
     }
 
     return {
@@ -185,7 +185,7 @@ export class DeportRecognizer {
     const numResults = await recognizeNumbers(numImgs);
 
     return {
-      data: _.merge(
+      data: merge(
         positions,
         simResults.map(sim => ({ sim })),
         numResults.map(num => ({ num })),

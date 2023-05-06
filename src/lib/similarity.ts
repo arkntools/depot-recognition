@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { findLast, sortBy } from 'lodash';
 import Jimp from 'jimp';
 import { isTrustedSimResult } from '../utils/trustedResult';
 
@@ -20,7 +20,7 @@ export const getSim = (
   order: string[],
 ): RecognizeSimilarityResult | null => {
   if (!order.length) return null;
-  const diffs = _.sortBy(
+  const diffs = sortBy(
     order.map<[string, number]>(id => [id, Jimp.diff(input, imgMap.get(id)!, 0.2).percent]),
     1,
   );
@@ -50,7 +50,7 @@ export const getSims = (
   } else {
     // 不受信结果
     const leftSims = getSims(inputs.slice(0, inputCenterI), imgMap, order);
-    const leftLastSim: RecognizeSimilarityResult | null = _.findLast(leftSims, sim => sim) as any;
+    const leftLastSim: RecognizeSimilarityResult | null = findLast(leftSims, sim => sim) as any;
     const rightSims = getSims(
       inputs.slice(inputCenterI + 1),
       imgMap,

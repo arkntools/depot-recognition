@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { findIndex, last, remove, transform } from 'lodash';
 
 export interface Range {
   start: number;
@@ -14,10 +14,10 @@ export const findRange = (x: number, ranges: Range[]): Range | undefined =>
   ranges.find(range => inRange(x, range));
 
 export const findRangeIndex = (x: number, ranges: Range[]): number =>
-  _.findIndex(ranges, range => inRange(x, range));
+  findIndex(ranges, range => inRange(x, range));
 
 export const getRanges = (arr: boolean[]): Range[] =>
-  _.transform<boolean, Range[]>(
+  transform<boolean, Range[]>(
     arr,
     (a, inRange, x) => {
       if (!a.length) {
@@ -25,8 +25,8 @@ export const getRanges = (arr: boolean[]): Range[] =>
         return;
       }
       if (inRange) {
-        const last = _.last(a)!;
-        if (x === getRangeEnd(last)) last.length++;
+        const lastRange = last(a)!;
+        if (x === getRangeEnd(lastRange)) lastRange.length++;
         else a.push({ start: x, length: 1 });
       }
     },
@@ -51,4 +51,4 @@ export const getRangesBy: {
 };
 
 export const removeRangesNoise = (ranges: Range[], size = 1): Range[] =>
-  _.remove(ranges, ({ length }) => length <= size);
+  remove(ranges, ({ length }) => length <= size);

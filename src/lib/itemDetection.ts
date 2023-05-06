@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { flatMap, flatten, map, maxBy, merge, min, range, uniqBy } from 'lodash';
 import Jimp from 'jimp';
 import { linearRegressionLine, linearRegression } from 'simple-statistics';
 import type { Range } from './range';
@@ -52,9 +52,9 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
   const yRanges = getRangesBy<number>(
     yWhite.map(v => v > yRangeMinLine),
     ({ length }, minLen) => length > minLen,
-    ranges => _.maxBy(ranges, 'length')!.length * 0.8,
+    ranges => maxBy(ranges, 'length')!.length * 0.8,
   );
-  let itemWidth = _.min(_.map(yRanges, 'length'))!; // 最小值一般为极限高度，和真正边长最接近
+  let itemWidth = min(map(yRanges, 'length'))!; // 最小值一般为极限高度，和真正边长最接近
 
   // 获得每行中素材的宽度范围
   const xWhites: number[][] = yRanges.map(() => new Array(width).fill(0));
@@ -70,19 +70,19 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     ),
   );
   const xRangeMinLength = 0.05 * itemWidth;
-  const xItemWidths = _.map(
-    _.flatten(xsRanges).filter(
+  const xItemWidths = map(
+    flatten(xsRanges).filter(
       ({ start, length }) =>
         start !== 0 && start + length !== width && length < itemWidth && length > xRangeMinLength,
     ),
     'length',
   );
   if (xItemWidths.length) {
-    itemWidth = _.min(xItemWidths)!; // 更新边长
+    itemWidth = min(xItemWidths)!; // 更新边长
   }
 
   // 获得规范素材的范围
-  const itemsRange = _.flatten(
+  const itemsRange = flatten(
     xsRanges.map((xRanges, y) => {
       const yRange = yRanges[y];
       return xRanges
@@ -112,13 +112,12 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
 
   // 更新边长
   itemWidth =
-    _.min(_.flatMap(itemsRange, ({ xRange, yRange }) => [xRange.length, yRange.length])) ||
-    itemWidth;
+    min(flatMap(itemsRange, ({ xRange, yRange }) => [xRange.length, yRange.length])) || itemWidth;
 
   // 材料位置的线性回归
   const xOccu = itemWidth * (1 + ITEM_X_SPACE_RATIO);
   const xCents = itemsRange.map(({ xRange: { start, length } }) => start + length / 2);
-  const firstXCent = _.min(xCents)!;
+  const firstXCent = min(xCents)!;
   const firstColOffset = Math.ceil(firstXCent / xOccu);
   const xPoints = xCents.map(y => [firstColOffset + Math.round((y - firstXCent) / xOccu), y]);
   const yPoints = itemsRange.map(({ y, yRange: { start, length } }) => [y, start + length / 2]);
@@ -131,7 +130,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
   const colNum = Math.floor((width + itemWidth * (1 + ITEM_X_SPACE_RATIO)) / xOccu);
   const rowNum = yRanges.length;
 
-  const xPoss = _.range(colNum)
+  const xPoss = range(colNum)
     .map(col => {
       const midX = getMidX(col);
       const x = Math.round((midX - itemWidth / 2) * scale);
@@ -143,7 +142,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
       };
     })
     .filter(({ pos: { x } }) => x >= 0 && x + trueItemWidth <= origImg.getWidth());
-  const yPoss = _.range(rowNum).map(row => {
+  const yPoss = range(rowNum).map(row => {
     const midY = getMidY(row);
     const y = Math.round((midY - itemWidth / 2) * scale);
     const top = (midY - (itemWidth * ITEM_VIEW_SCALE) / 2) / height;
@@ -154,9 +153,9 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     };
   });
 
-  const positions = _.flatMap(_.uniqBy(_.flatten(xPoss), 'pos.x'), xPos =>
-    _.uniqBy(_.flatten(yPoss), 'pos.y').map(yPos =>
-      _.merge(
+  const positions = flatMap(uniqBy(flatten(xPoss), 'pos.x'), xPos =>
+    uniqBy(flatten(yPoss), 'pos.y').map(yPos =>
+      merge(
         {
           debug: {
             scale: ITEM_DEBUG_VIEW_W / (scale * itemWidth),

@@ -1,14 +1,17 @@
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin';
 import externalGlobals from 'rollup-plugin-external-globals';
 import localResolve from 'rollup-plugin-local-resolve';
+import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import del from 'rollup-plugin-delete';
 import write from './plugins/rollup-plugin-write';
 
 const { ROLLUP_WATCH } = process.env;
 
-const external = [/^lodash/, /^@arkntools/, 'jimp', 'jszip', 'simple-statistics', './tools'];
+const external = [/^lodash/, /^@arkntools/, 'jimp', 'jszip', /^simple-statistics/, './tools'];
 const localResolvePlugin = localResolve();
+const lodashPlugin = optimizeLodashImports();
 const babelOutputPlugin = getBabelOutputPlugin({
   comments: false,
   plugins: ['@babel/plugin-transform-modules-commonjs'],
@@ -19,6 +22,7 @@ const getConfig = name => ({
   external,
   plugins: [
     localResolvePlugin,
+    lodashPlugin,
     write({
       targets: [
         {
@@ -51,7 +55,17 @@ const workerConfigs = [
     input: 'dist/worker/index.js',
     external,
     plugins: [
-      ...workerConfigPlugins,
+      localResolvePlugin,
+      lodashPlugin,
+      replace({
+        values: {
+          "from 'jimp';": "from '@arkntools/scripts/dist/jimp4worker';",
+          "import { linearRegressionLine, linearRegression } from 'simple-statistics';":
+            "import linearRegression from 'simple-statistics/src/linear_regression.js';\nimport linearRegressionLine from 'simple-statistics/src/linear_regression_line.js';",
+        },
+        delimiters: ['', ''],
+        preventAssignment: true,
+      }),
       copy({
         copyOnce: true,
         targets: [
@@ -67,19 +81,30 @@ const workerConfigs = [
       format: 'es',
     },
   },
-  {
-    input: 'dist/lib/index.js',
-    external,
-    plugins: workerConfigPlugins,
-    output: {
-      file: 'dist/worker/index.noImportScripts.js',
-      format: 'es',
-    },
-  },
 ];
 
 if (!ROLLUP_WATCH) {
-  workerConfigs[0].plugins.push(
+  workerConfigs.push(
+    {
+      input: 'dist/worker/index.importScriptsJsDelivr.js',
+      external,
+      plugins: workerConfigPlugins,
+      output: {
+        file: 'dist/worker/index.importScriptsJsDelivr.js',
+        format: 'es',
+      },
+    },
+    {
+      input: 'dist/lib/index.js',
+      external,
+      plugins: workerConfigPlugins,
+      output: {
+        file: 'dist/worker/index.noImportScripts.js',
+        format: 'es',
+      },
+    },
+  );
+  workerConfigs[workerConfigs.length - 1].plugins.push(
     write({
       targets: [
         {

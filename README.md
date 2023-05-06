@@ -110,6 +110,15 @@ const initRecognizer = async () => {
 })();
 ```
 
+We offer several types of imports:
+
+- `@arkntools/depot-recognition/worker`  
+  Basic import
+- `@arkntools/depot-recognition/worker/index.importScriptsJsDelivr`  
+  All dependencies are loaded from fastly.jsdelivr.net
+- `@arkntools/depot-recognition/worker/index.noImportScripts`  
+  No dependency loading, you need to call `importScripts()` by yourself
+
 #### Typescript
 
 If you are using comlink-loader in Typescript, you need to add a declaration:

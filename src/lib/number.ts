@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { last, map, remove, sum } from 'lodash';
 import OCRAD from '@arkntools/scripts/dist/ocrad';
 import Jimp from 'jimp';
 import { jimp2base64 } from '../utils/jimp2base64';
@@ -82,7 +82,7 @@ export const splitNumbers = ({
     removeRangesNoise(numImgBlackRanges, NUM_MIN_WIDTH);
     // 开头贴边块不要
     if (numImgBlackRanges[0]?.start === 0) numImgBlackRanges.splice(0, 1);
-    _.remove(numImgBlackRanges, ({ start, length }, j) => {
+    remove(numImgBlackRanges, ({ start, length }, j) => {
       // 间距过大不要
       const next = numImgBlackRanges[j + 1];
       if (next && next.start - (start + length) > NUM_MAX_SPACE) return true;
@@ -93,9 +93,9 @@ export const splitNumbers = ({
       });
       const yRanges = getRanges(yBlack.map(v => v > 0));
       // 上下贴边块不要
-      if (yBlack[0] || _.last(yBlack)) return true;
+      if (yBlack[0] || last(yBlack)) return true;
       // 过矮块不要
-      if (_.sum(_.map(yRanges, 'length')) < numImgH * 0.5) return true;
+      if (sum(map(yRanges, 'length')) < numImgH * 0.5) return true;
       return false;
     });
     if (!numImgBlackRanges.length) {
@@ -103,7 +103,7 @@ export const splitNumbers = ({
     }
     const newNumImg = new Jimp(
       NUM_IMG_PADDING * 2 +
-        _.sum(_.map(numImgBlackRanges, 'length')) +
+        sum(map(numImgBlackRanges, 'length')) +
         (numImgBlackRanges.length - 1) * NUM_APPEND_SPACE,
       numImgH,
       'white',

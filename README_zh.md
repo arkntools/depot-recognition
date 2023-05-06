@@ -110,6 +110,15 @@ const initRecognizer = async () => {
 })();
 ```
 
+本库提供了数种导入方式：
+
+- `@arkntools/depot-recognition/worker`  
+  基本导入方式
+- `@arkntools/depot-recognition/worker/index.importScriptsJsDelivr`  
+  所有依赖从 fastly.jsdelivr.net 加载
+- `@arkntools/depot-recognition/worker/index.noImportScripts`  
+  无依赖加载，需要自行添加 importScripts
+
 #### Typescript
 
 如果在 Typescript 中使用 comlink-loader，你需要自行补充模块定义

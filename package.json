@@ -9,12 +9,12 @@
     "test": "node ./test && jest",
     "test:clean": "rimraf -g ./test/cache ./test/**/index.spec.ts",
     "build": "rimraf dist && tsc && rollup -c --bundleConfigAsCjs",
-    "watch": "tsc-watch --onFirstSuccess \"rollup -cw\"",
+    "watch": "tsc-watch --onFirstSuccess \"rollup -cw --bundleConfigAsCjs\"",
     "lint:fix": "eslint . --ext .ts --fix",
     "postversion": "tpv"
   },
   "dependencies": {
-    "@arkntools/scripts": "^1.1.1",
+    "@arkntools/scripts": "^1.1.2",
     "jimp": "^0.16.13",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
@@ -23,7 +23,9 @@
   "devDependencies": {
     "@babel/core": "^7.21.4",
     "@babel/plugin-transform-modules-commonjs": "^7.21.2",
+    "@optimize-lodash/rollup-plugin": "^4.0.3",
     "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-replace": "^5.0.2",
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/jest": "^29.5.1",
     "@types/lodash": "^4.14.194",
