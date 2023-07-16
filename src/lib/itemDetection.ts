@@ -1,6 +1,6 @@
 import { flatMap, flatten, map, maxBy, merge, min, range, uniqBy } from 'lodash';
-import Jimp from 'jimp';
 import { linearRegressionLine, linearRegression } from 'simple-statistics';
+import Jimp from '../utils/jimp';
 import type { Range } from './range';
 import { getRangesBy, findRangeIndex } from './range';
 

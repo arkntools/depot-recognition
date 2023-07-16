@@ -9,7 +9,15 @@ import write from './plugins/rollup-plugin-write';
 
 const { ROLLUP_WATCH } = process.env;
 
-const external = [/^lodash/, /^@arkntools/, 'jimp', 'jszip', /^simple-statistics/, './tools'];
+const external = [
+  /^lodash/,
+  /^@arkntools/,
+  'jimp',
+  /^@jimp\//,
+  'jszip',
+  /^simple-statistics/,
+  './tools',
+];
 const localResolvePlugin = localResolve();
 const lodashPlugin = optimizeLodashImports();
 const babelOutputPlugin = getBabelOutputPlugin({
@@ -41,9 +49,14 @@ const getConfig = name => ({
 
 const workerConfigPlugins = [
   localResolvePlugin,
+  // externalGlobals(id => {
+  //   console.log(id);
+  //   return '';
+  // }),
   externalGlobals({
     lodash: '_',
     jimp: 'Jimp',
+    '../utils/jimp': 'Jimp',
     jszip: 'JSZip',
     'simple-statistics': 'ss',
     '@arkntools/scripts/dist/ocrad': 'OCRAD',
