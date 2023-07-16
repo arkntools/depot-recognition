@@ -196,6 +196,8 @@ new DeportRecognizer(config)
     x: number, // 左上顶点 x
     y: number, // 左上顶点 y
     l: number, // 边长
+    row: number, // 行
+    col: number, // 列
   },
   // 材料四边与全图四边的距离比例，0~1
   view: {

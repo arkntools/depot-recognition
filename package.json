@@ -6,7 +6,7 @@
   "author": "神代綺凛 <i@loli.best>",
   "license": "MIT",
   "scripts": {
-    "test": "node ./test && jest",
+    "test": "node ./test && jest --runInBand",
     "test:clean": "rimraf -g ./test/cache ./test/**/index.spec.ts",
     "build": "rimraf dist && tsc && rollup -c --bundleConfigAsCjs",
     "watch": "tsc-watch --onFirstSuccess \"rollup -cw --bundleConfigAsCjs\"",

@@ -3,15 +3,15 @@ const { resolve } = require('path');
 const fetch = require('node-fetch').default;
 const _ = require('lodash');
 
-const SPEC_CONTENT = `import { run } from '../../index.jm';
-run(__dirname);`;
+// const SPEC_CONTENT = `import { run } from '../../index.jm';
+// run(__dirname);`;
 
 const rp = rpath => resolve(__dirname, rpath);
 
-readdirSync(rp('cases')).forEach(name => {
-  if (name.startsWith('.')) return;
-  writeFileSync(rp(`cases/${name}/index.spec.ts`), SPEC_CONTENT);
-});
+// readdirSync(rp('cases')).forEach(name => {
+//   if (name.startsWith('.')) return;
+//   writeFileSync(rp(`cases/${name}/index.spec.ts`), SPEC_CONTENT);
+// });
 
 if (!existsSync(rp('cache'))) mkdirSync(rp('cache'));
 [

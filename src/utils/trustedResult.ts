@@ -16,6 +16,11 @@ export const MAX_TRUST_DIFF: Readonly<Record<string, number | undefined> & { DEF
   31024: 0.22,
 };
 
+const MAX_CLOSE_DIFF = 0.005;
+
+export const isDiffsTooClose = (diffs: RecognizeSimilarityResult['diffs']): boolean =>
+  diffs.length >= 2 && Math.abs(diffs[0][1] - diffs[1][1]) < MAX_CLOSE_DIFF;
+
 export const isTrustedSimResult = (
   sim?: RecognizeSimilarityResult | null,
 ): sim is RecognizeSimilarityResult => {

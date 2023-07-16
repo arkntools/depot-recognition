@@ -2,7 +2,7 @@ import { castArray, intersection, merge } from 'lodash';
 import type { JSZipLoadOptions } from 'jszip';
 import JSZip from 'jszip';
 import Jimp from '../utils/jimp';
-import { jimp2base64 } from '../utils/jimp2base64';
+import { jimp2base64, jimpGaussBlur } from '../utils/jimpUtils';
 import { itemDetection } from './itemDetection';
 import type { RecognizeNumberResult } from './number';
 import { splitNumbers, recognizeNumbers } from './number';
@@ -36,6 +36,10 @@ export interface RecognizeResult {
     y: number;
     /** Side length */
     l: number;
+    /** Row */
+    row: number;
+    /** Column */
+    col: number;
   };
   /** The distance ratio (0~1) between the four sides of the material and the four sides of the whole image */
   view: {
@@ -111,8 +115,7 @@ export class DeportRecognizer {
                   const img = await Jimp.read((await file.async('arraybuffer')) as any);
                   return [
                     file.name.replace(/\.png$/, ''),
-                    img
-                      .crop(IMG_CROP_XY, IMG_CROP_XY, IMG_CROP_SL, IMG_CROP_SL)
+                    jimpGaussBlur(img.crop(IMG_CROP_XY, IMG_CROP_XY, IMG_CROP_SL, IMG_CROP_SL))
                       .resize(IMG_SL, IMG_SL, Jimp.RESIZE_BEZIER)
                       .composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y)
                       .circle(),
@@ -146,7 +149,7 @@ export class DeportRecognizer {
     file: string | Buffer,
     onProgress: (step: number) => void = () => {},
   ): Promise<{ data: RecognizeResult[]; debug: string[] }> {
-    const debugImgs = [];
+    const debugImgs: Jimp[] = [];
     const nextProgress = (() => {
       let progress = 0;
       return () => onProgress(progress++);
@@ -156,6 +159,7 @@ export class DeportRecognizer {
     nextProgress();
     if (this.preloadResourcePromise) await this.preloadResourcePromise;
     const [origImg, itemData] = await Promise.all([Jimp.read(file as any), this.loadResource()]);
+    if (this.isDebug) debugImgs.push(...itemData.imgMap.values());
 
     // 切图
     nextProgress();
@@ -164,13 +168,16 @@ export class DeportRecognizer {
       itemWidth,
       debugImgs: itemDetectionDebugImgs,
     } = itemDetection(origImg, this.isDebug);
-    if (this.isDebug) debugImgs.push(...itemDetectionDebugImgs);
     const splittedImgs = positions.map(({ pos: { x, y } }) =>
       origImg.clone().crop(x, y, itemWidth, itemWidth),
     );
     const compareImgs = splittedImgs.map(img =>
       img.clone().resize(IMG_SL, IMG_SL).composite(NUM_MASK_IMG, NUM_MASK_X, NUM_MASK_Y).circle(),
     );
+    if (this.isDebug) {
+      debugImgs.push(...compareImgs);
+      debugImgs.push(...itemDetectionDebugImgs);
+    }
 
     // 相似度计算
     nextProgress();

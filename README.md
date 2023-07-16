@@ -196,6 +196,8 @@ Recognize deport image.
     x: number, // Top left x
     y: number, // Top left y
     l: number, // Side length
+    row: number, // Row
+    col: number, // Column
   },
   // The distance ratio (0~1) between the four sides of the material and the four sides of the whole image
   view: {

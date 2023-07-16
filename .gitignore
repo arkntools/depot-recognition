@@ -1,5 +1,4 @@
 /test/cache
-/test/cases/**/*.spec.ts
 /dist
 
 # Logs

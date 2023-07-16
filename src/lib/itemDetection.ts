@@ -132,12 +132,13 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
 
   const xPoss = range(colNum)
     .map(col => {
-      const midX = getMidX(col);
+      const offset = ((col + 1) / colNum) * -1; // magic offset :(
+      const midX = getMidX(col) + offset;
       const x = Math.round((midX - itemWidth / 2) * scale);
       const left = (midX - (itemWidth * ITEM_VIEW_SCALE) / 2) / width;
       const right = 1 - (midX + (itemWidth * ITEM_VIEW_SCALE) / 2) / width;
       return {
-        pos: { x },
+        pos: { x, col },
         view: { left, right },
       };
     })
@@ -148,7 +149,7 @@ export const itemDetection = (origImg: Jimp, isDebug = false) => {
     const top = (midY - (itemWidth * ITEM_VIEW_SCALE) / 2) / height;
     const bottom = 1 - (midY + (itemWidth * ITEM_VIEW_SCALE) / 2) / height;
     return {
-      pos: { y, l: trueItemWidth },
+      pos: { y, l: trueItemWidth, row },
       view: { top, bottom },
     };
   });

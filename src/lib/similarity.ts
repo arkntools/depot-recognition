@@ -1,6 +1,6 @@
 import { findLast, sortBy } from 'lodash';
 import Jimp from '../utils/jimp';
-import { isTrustedSimResult } from '../utils/trustedResult';
+import { isDiffsTooClose, isTrustedSimResult } from '../utils/trustedResult';
 
 export interface RecognizeSimilarityResult {
   /** ID of most similar material */
@@ -9,12 +9,14 @@ export interface RecognizeSimilarityResult {
   diff: number;
   /** Comparative record of the material, an array of material ID and difference degree */
   diffs: Array<[string, number]>;
+  /** Whether the differences are too close, should be careful with the result */
+  diffsTooClose: boolean;
 }
 
 export type CompareItemData = Array<[string, Jimp]>;
 
 /** 相似度计算 */
-export const getSim = (
+const getSim = (
   input: Jimp,
   imgMap: Map<string, Jimp>,
   order: string[],
@@ -25,7 +27,7 @@ export const getSim = (
     1,
   );
   const [name, diff] = diffs[0];
-  return { name, diff, diffs };
+  return { name, diff, diffs, diffsTooClose: isDiffsTooClose(diffs) };
 };
 
 /** 相似度计算（二分法） */
@@ -39,7 +41,7 @@ export const getSims = (
   }
   const inputCenterI = Math.floor(inputs.length / 2);
   const inputCenterSim = getSim(inputs[inputCenterI], imgMap, order);
-  if (isTrustedSimResult(inputCenterSim)) {
+  if (isTrustedSimResult(inputCenterSim) && !inputCenterSim.diffsTooClose) {
     // 受信结果
     const compareCenterI = order.findIndex(name => name === inputCenterSim.name);
     return [
