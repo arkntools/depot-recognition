@@ -14,7 +14,7 @@
     "postversion": "tpv"
   },
   "dependencies": {
-    "@arkntools/scripts": "^1.1.2",
+    "@arkntools/scripts": "^1.2.1",
     "jimp": "^0.22.8",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",

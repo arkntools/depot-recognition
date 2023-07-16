@@ -1,7 +1,7 @@
 import { castArray, intersection, merge } from 'lodash';
 import type { JSZipLoadOptions } from 'jszip';
 import JSZip from 'jszip';
-import Jimp from '../utils/jimp';
+import Jimp from 'jimp';
 import { jimp2base64, jimpGaussBlur } from '../utils/jimpUtils';
 import { itemDetection } from './itemDetection';
 import type { RecognizeNumberResult } from './number';

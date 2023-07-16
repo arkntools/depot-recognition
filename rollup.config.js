@@ -49,14 +49,9 @@ const getConfig = name => ({
 
 const workerConfigPlugins = [
   localResolvePlugin,
-  // externalGlobals(id => {
-  //   console.log(id);
-  //   return '';
-  // }),
   externalGlobals({
     lodash: '_',
     jimp: 'Jimp',
-    '../utils/jimp': 'Jimp',
     jszip: 'JSZip',
     'simple-statistics': 'ss',
     '@arkntools/scripts/dist/ocrad': 'OCRAD',

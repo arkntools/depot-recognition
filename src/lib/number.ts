@@ -1,6 +1,6 @@
 import { last, map, remove, sum } from 'lodash';
 import OCRAD from '@arkntools/scripts/dist/ocrad';
-import Jimp from '../utils/jimp';
+import Jimp from 'jimp';
 import { jimp2base64 } from '../utils/jimpUtils';
 import ImageData from '../utils/ImageData';
 import type { Range } from './range';

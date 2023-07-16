@@ -1,5 +1,5 @@
 import { findLast, sortBy } from 'lodash';
-import Jimp from '../utils/jimp';
+import Jimp from 'jimp';
 import { isDiffsTooClose, isTrustedSimResult } from '../utils/trustedResult';
 
 export interface RecognizeSimilarityResult {
