@@ -179,52 +179,68 @@ new DeportRecognizer(config)
 
 #### Returns
 
-| Name  | Type                                      | Description                                                                                          |
-| ----- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| data  | [`SimilarityResult[]`](#similarityresult) | 识别相似度结果的数组                                                                                 |
-| debug | `string[]`                                | 使用 [setDebug](#deportrecognizersetdebugenable-void) 设置调试模式后会输出一些 base64 形式的过程图片 |
+| Name  | Type                                    | Description                                                                                          |
+| ----- | --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| data  | [`RecognizeResult[]`](#recognizeresult) | 识别相似度结果的数组                                                                                 |
+| debug | `string[]`                              | 使用 [setDebug](#deportrecognizersetdebugenable-void) 设置调试模式后会输出一些 base64 形式的过程图片 |
 
-##### `SimilarityResult`
+##### `RecognizeResult`
 
 ```js
-{
+interface RecognizeResult {
   debug: {
-    scale: number, // 材料切图被缩放到 60*60 时的缩放比例
-  },
-  // 材料位置
+    /** 材料切图被缩放到 60*60 时的缩放比例 */
+    scale: number;
+  };
+  /** 材料位置 */
   pos: {
-    x: number, // 左上顶点 x
-    y: number, // 左上顶点 y
-    l: number, // 边长
-    row: number, // 行
-    col: number, // 列
-  },
-  // 材料四边与全图四边的距离比例，0~1
+    /** 左上顶点 x */
+    x: number;
+    /** 左上顶点 y */
+    y: number;
+    /** 边长 */
+    l: number;
+    /** 行 */
+    row: number;
+    /** 列 */
+    col: number;
+  };
+  /** 材料四边与全图四边的距离比例，0~1 */
   view: {
-    left: number,
-    right: number,
-    top: number,
-    bottom: number,
-  },
-  // 相似度信息
-  sim: {
-    name: string, // 最相似的材料ID
-    diff: number, // 与其相比的差异度，0~1
-    // 该材料的对比记录
-    diffs: [
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+  };
+  /** 相似度信息 */
+  sim?: {
+    /** 最相似的材料ID */
+    name: string;
+    /** 与其相比的差异度，0~1 */
+    diff: number;
+    /** 该材料的对比记录 */
+    diffs: Array<
       [
-        string, // 材料ID
-        number, // 差异度
-      ],
-    ],
-  },
-  // 材料数量信息
-  num: {
-    img: string,   // 处理后的数字图片，base64
-    text: string,  // 识别结果，可能含有空格( )或下划线(_)等非数字字符
-    value: number, // 去除非数字字符后的数字结果，若没识别出数字则默认为 1
-    warn: boolean, // 排除空格影响后识别结果(text)是否与识别数字(value)不一致
-  },
+        /** 材料ID */
+        string,
+        /** 差异度 */
+        number
+      ]
+    >;
+    /** 是否有过于接近的相似度，应当小心甄别识别结果 */
+    diffsTooClose: boolean;
+  };
+  /** 材料数量信息 */
+  num?: {
+    /** 处理后的数字图片，base64 */
+    img: string;
+    /** 识别结果，可能含有空格( )或下划线(_)等非数字字符 */
+    text: string;
+    /** 去除非数字字符后的数字结果，若没识别出数字则默认为 1 */
+    value: number;
+    /** 排除空格影响后识别结果(text)是否与识别数字(value)不一致 */
+    warn: boolean;
+  };
 }
 ```
 
@@ -268,12 +284,12 @@ new DeportRecognizer(config)
 
 #### Parameters
 
-| Name | Type                                      | Description        |
-| ---- | ----------------------------------------- | ------------------ |
-| data | [`SimilarityResult[]`](#similarityresult) | 识别相似度结果数组 |
+| Name | Type                                    | Description        |
+| ---- | --------------------------------------- | ------------------ |
+| data | [`RecognizeResult[]`](#recognizeresult) | 识别相似度结果数组 |
 
 #### Returns
 
-| Name                                               | Type     | Description  |
-| -------------------------------------------------- | -------- | ------------ |
-| [`[SimilarityResult.sim.name]`](#similarityresult) | `number` | 材料ID: 数量 |
+| Name                                             | Type     | Description  |
+| ------------------------------------------------ | -------- | ------------ |
+| [`[RecognizeResult.sim.name]`](#recognizeresult) | `number` | 材料ID: 数量 |

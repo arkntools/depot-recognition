@@ -179,52 +179,68 @@ Recognize deport image.
 
 #### Returns
 
-| Name  | Type                                      | Description                                                                                                     |
-| ----- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| data  | [`SimilarityResult[]`](#similarityresult) | Array of recognition similarity result.                                                                         |
-| debug | `string[]`                                | Will contain some base64 images after using [setDebug](#deportrecognizersetdebugenable-void) to set debug mode. |
+| Name  | Type                                    | Description                                                                                                     |
+| ----- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| data  | [`RecognizeResult[]`](#recognizeresult) | Array of recognition result result.                                                                             |
+| debug | `string[]`                              | Will contain some base64 images after using [setDebug](#deportrecognizersetdebugenable-void) to set debug mode. |
 
-##### `SimilarityResult`
+##### `RecognizeResult`
 
-```js
-{
+```ts
+interface RecognizeResult {
   debug: {
-    scale: number, // The scaling ratio when the material slice is scaled to 60 * 60
-  },
-  // Material position
+    /** The scaling ratio when the material slice is scaled to 60 * 60 */
+    scale: number;
+  };
+  /** Material position */
   pos: {
-    x: number, // Top left x
-    y: number, // Top left y
-    l: number, // Side length
-    row: number, // Row
-    col: number, // Column
-  },
-  // The distance ratio (0~1) between the four sides of the material and the four sides of the whole image
+    /** Top left x */
+    x: number;
+    /** Top left y */
+    y: number;
+    /** Side length */
+    l: number;
+    /** Row */
+    row: number;
+    /** Column */
+    col: number;
+  };
+  /** The distance ratio (0~1) between the four sides of the material and the four sides of the whole image */
   view: {
-    left: number,
-    right: number,
-    top: number,
-    bottom: number,
-  },
-  // Similarity
-  sim: {
-    name: string, // ID of most similar material
-    diff: number, // The degree of difference (0~1) between them
-    // Comparative record of the material
-    diffs: [
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+  };
+  /** Similarity */
+  sim?: {
+    /** ID of most similar material */
+    name: string;
+    /** The degree of difference (0~1) between them */
+    diff: number;
+    /** Comparative record of the material, an array of material ID and difference degree */
+    diffs: Array<
       [
-        string, // Material ID
-        number, // Difference degree
-      ],
-    ],
-  },
-  // Material quantity
-  num: {
-    img: string,   // Processed digital picture in base64
-    text: string,  // The recognition result, may contain non-numeric characters such as spaces ( ) or underscores (_)
-    value: number, // The numerical result after removing the non-numeric character, the default is 1 when the number is not recognized
-    warn: boolean, // Whether the recognition result (text) is the same as the recognition number (value) after excluding the influence of spaces
-  },
+        /** Material ID */
+        string,
+        /** Difference degree */
+        number
+      ]
+    >;
+    /** Whether the differences are too close, should be careful with the result */
+    diffsTooClose: boolean;
+  };
+  /** Material quantity */
+  num?: {
+    /** Processed digital picture in base64 */
+    img: string;
+    /** The recognition result, may contain non-numeric characters such as spaces ( ) or underscores (_) */
+    text: string;
+    /** The numerical result after removing the non-numeric character, the default is 1 when the number is not recognized */
+    value: number;
+    /** Whether the recognition result (text) is different from the recognition number (value) after excluding the influence of spaces */
+    warn: boolean;
+  };
 }
 ```
 
@@ -260,7 +276,7 @@ Determine whether a similarity result is trustable.
 
 | Name   | Type                                    | Description                    |
 | ------ | --------------------------------------- | ------------------------------ |
-| result | [`SimilarityResult`](#similarityresult) | Recognition similarity result. |
+| result | [`RecognizeResult[]`](#recognizeresult) | Recognition similarity result. |
 
 ### `toSimpleTrustedResult(data): Record<string, number>`
 
@@ -268,12 +284,12 @@ Convert the similarity result array into a simple result object.
 
 #### Parameters
 
-| Name | Type                                      | Description                             |
-| ---- | ----------------------------------------- | --------------------------------------- |
-| data | [`SimilarityResult[]`](#similarityresult) | Array of recognition similarity result. |
+| Name | Type                                    | Description                             |
+| ---- | --------------------------------------- | --------------------------------------- |
+| data | [`RecognizeResult[]`](#recognizeresult) | Array of recognition similarity result. |
 
 #### Returns
 
-| Name                                               | Type     | Description           |
-| -------------------------------------------------- | -------- | --------------------- |
-| [`[SimilarityResult.sim.name]`](#similarityresult) | `number` | Material ID: quantity |
+| Name                                             | Type     | Description           |
+| ------------------------------------------------ | -------- | --------------------- |
+| [`[RecognizeResult.sim.name]`](#recognizeresult) | `number` | Material ID: quantity |

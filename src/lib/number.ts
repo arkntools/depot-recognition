@@ -14,7 +14,7 @@ export interface RecognizeNumberResult {
   text: string;
   /** The numerical result after removing the non-numeric character, the default is 1 when the number is not recognized */
   value: number;
-  /** Whether the recognition result (text) is the same as the recognition number (value) after excluding the influence of spaces */
+  /** Whether the recognition result (text) is different from the recognition number (value) after excluding the influence of spaces */
   warn: boolean;
 }
 
